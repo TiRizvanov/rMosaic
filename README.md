@@ -159,8 +159,3 @@ Please file any issues on [GitHub Issues](https://github.com/yourusername/mosaic
 MIT © Your Name or Organization  
 See [LICENSE](./LICENSE) for details.
 ```
-
-**Notes**  
-- Update all placeholder links (e.g. `yourusername`) to your actual GitHub account or package URLs.  
-- Expand the **Examples** section with specifics of the demos you include.  
-- If you publish to CRAN, include CRAN badges and documentation links at the top.
