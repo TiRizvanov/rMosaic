@@ -18,12 +18,12 @@
 ## Installation
 
 ```r
-# From CRAN (if published):
+# If you are in the package directory:
 install.packages("mosaicShiny")
 
 # Or install development version from GitHub:
 # install.packages("remotes")
-remotes::install_github("yourusername/mosaicShiny")
+remotes::install_github("TiRizvanov/mosaicShiny")
 ```
 
 ---
