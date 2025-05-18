@@ -1,7 +1,7 @@
 Package: mosaicShiny
 Type: Package
 Title: "Mosaic Shiny Integration"
-Version: 0.1.0
+Version: 0.1.1
 Description: "Embed the Mosaic framework in R, allowing users to declaratively define visualizations (via JSON/YAML specs) and render interactive Mosaic plots in Shiny. Data queries are executed in DuckDB via R, enabling scalable linked visuals."
 License: BSD-3-Clause
 Imports: 
@@ -10,8 +10,7 @@ Imports:
     jsonlite,
     yaml,
     DBI,
-    duckdb
-Suggests:
+    duckdb,
     arrow
 Encoding: UTF-8
 LazyData: true
