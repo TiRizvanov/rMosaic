@@ -1,8 +1,6 @@
 library(mosaicShiny)
-
-
-#Test the mosaicShiny
-
+library(arrow)
+library(base64enc)
 # 1) JSON (string)
 json_spec <- '{
   "plot": [{
@@ -25,9 +23,111 @@ yaml_spec <- list(
   height = 500
 )
 
+# 3) ESM from raw JS text
+esm_text <- "
+import { plot, dot, from, width, height } from 'https://esm.sh/@uwdata/vgplot@0.15.0';
+export default plot(
+  dot(from('iris'), { x:'Sepal.Length', y:'Sepal.Width', color:'Species' }),
+  width(700), height(500)
+);
+"
+
 # Launch each in the Viewer:
 runMosaicApp(json_spec, specType="json", data=list(iris=iris), title="JSON Iris")
 runMosaicApp(yaml_spec, specType="yaml", data=list(iris=iris), title="YAML Iris")
+runMosaicApp(esm_text, specType="esm", data=list(iris=iris), title="ESM Iris")
+
+
+
+
+
+
+
+
+#First Example
+
+
+# ▶︎ APPLE STOCK — JSON
+library(mosaicShiny)
+
+# 1) Mock data: 100 days of “Close” prices
+set.seed(42)
+mock_aapl <- data.frame(
+  Date  = seq.Date(Sys.Date() - 99, Sys.Date(), by = "day"),
+  Close = cumsum(runif(100, -1, 1)) + 150
+)
+
+# 2) JSON spec string
+json_spec <- '{
+  "plot":[{"mark":"lineY","data":{"from":"aapl"},"x":"Date","y":"Close"}],
+  "width":680,"height":200
+}'
+
+# 3) Launch the app
+runMosaicApp(
+  spec       = json_spec,
+  specType   = "json",
+  data       = list(aapl = mock_aapl),
+  title      = "AAPL via JSON",
+  width      = 680,
+  height     = 200
+)
+
+
+
+# ▶︎ APPLE STOCK — YAML
+library(mosaicShiny)
+
+# reuse mock_aapl from above
+
+# 1) YAML spec as an R list
+yaml_spec <- list(
+  data = list(aapl = list()),
+  plot = list(list(
+    mark = "lineY",
+    data = list(from = "aapl"),
+    x    = "Date",
+    y    = "Close"
+  )),
+  width  = 680,
+  height = 200
+)
+
+# 2) Launch the app
+runMosaicApp(
+  spec       = yaml_spec,
+  specType   = "yaml",
+  data       = list(aapl = mock_aapl),
+  title      = "AAPL via YAML",
+  width      = 680,
+  height     = 200
+)
+
+
+
+
+# ▶︎ APPLE STOCK — ESM
+library(mosaicShiny)
+
+# reuse mock_aapl
+
+# 1) Inline ESM spec (JS module as text)
+esm_spec <- "
+export default plot(
+  lineY(from('aapl'), { x:'Date', y:'Close' }),
+  width(680), height(200)
+);
+"
+
+# 2) Launch the app
+runMosaicApp(
+  spec       = esm_spec,
+  specType   = "esm",
+  data       = list(aapl = mock_aapl),
+  title      = "AAPL via ESM",
+  width      = 680,
+  height     = 200
+)
 
 
 
@@ -38,7 +138,8 @@ runMosaicApp(yaml_spec, specType="yaml", data=list(iris=iris), title="YAML Iris"
 
 
 
-# examples
+
+# Second ex
 
 
 # install.packages("mosaicShiny")  # if you haven’t already
@@ -137,24 +238,6 @@ voronoi_json <- jsonlite::toJSON(voronoi_yaml, auto_unbox = TRUE, pretty = TRUE)
 
 # 4) ESM spec (raw JS text) — unchanged
 voronoi_esm <- "
-// voronoi_esm_fixed.js
-import {
-  plot,
-  voronoi,
-  hull,
-  delaunayMesh,
-  dot,
-  frame,
-  menu,
-  hconcat,
-  hspace,
-  vconcat,
-  width,
-  height,
-  Param,
-  from
-} from 'https://esm.sh/@uwdata/vgplot@0.15.0';
-
 const $mesh = Param.value(0);
 const $hull = Param.value(0);
 
@@ -324,6 +407,124 @@ runMosaicApp(
 
 
 
+# fourth
+
+# install.packages(c("palmerpenguins","mosaicShiny"))
+library(palmerpenguins)
+library(mosaicShiny)
+
+# 1) Prepare the data
+penguins <- na.omit(palmerpenguins::penguins)
+
+# 2) Build the spec as an R list (JSON‐equivalent)
+spec <- list(
+  meta = list(
+    title       = "Pan & Zoom",
+    description = paste(
+      "Linked panning and zooming across plots: drag to pan, scroll to zoom.",
+      "`panZoom` interactors update bound selections per axis."
+    )
+  ),
+  # telling mosaicShiny we'll supply 'penguins' via data=…
+  data = list(penguins = list()),
+
+  # top‐level layout: two columns of two plots each
+  hconcat = list(
+    # left column
+    list(
+      vconcat = list(
+        # top‐left
+        list(
+          plot = list(
+            list(mark = "frame"),
+            list(
+              mark     = "dot",
+              data     = list(from = "penguins"),
+              x        = "bill_length_mm",
+              y        = "bill_depth_mm",
+              fill     = "species",
+              r        = 2,
+              clip     = TRUE
+            ),
+            # panZoom selection bound into $xs/$ys
+            list(select = "panZoom", x = "$xs", y = "$ys")
+          ),
+          width  = 320, height = 240
+        ),
+        # gutter
+        list(vspace = 10),
+        # bottom‐left
+        list(
+          plot = list(
+            list(mark = "frame"),
+            list(
+              mark     = "dot",
+              data     = list(from = "penguins"),
+              x        = "bill_length_mm",
+              y        = "flipper_length_mm",
+              fill     = "species",
+              r        = 2,
+              clip     = TRUE
+            ),
+            list(select = "panZoom", x = "$xs", y = "$zs")
+          ),
+          width  = 320, height = 240
+        )
+      )
+    ),
+    # horizontal gutter
+    list(hspace = 10),
+
+    # right column
+    list(
+      vconcat = list(
+        # top‐right
+        list(
+          plot = list(
+            list(mark = "frame"),
+            list(
+              mark     = "dot",
+              data     = list(from = "penguins"),
+              x        = "body_mass_g",
+              y        = "bill_depth_mm",
+              fill     = "species",
+              r        = 2,
+              clip     = TRUE
+            ),
+            list(select = "panZoom", x = "$ws", y = "$ys")
+          ),
+          width  = 320, height = 240
+        ),
+        list(vspace = 10),
+        # bottom‐right
+        list(
+          plot = list(
+            list(mark = "frame"),
+            list(
+              mark     = "dot",
+              data     = list(from = "penguins"),
+              x        = "body_mass_g",
+              y        = "flipper_length_mm",
+              fill     = "species",
+              r        = 2,
+              clip     = TRUE
+            ),
+            list(select = "panZoom", x = "$ws", y = "$zs")
+          ),
+          width  = 320, height = 240
+        )
+      )
+    )
+  )
+)
+
+# 3) Run it, passing the penguins df in `data=…`
+runMosaicApp(
+  spec     = spec,
+  specType = "json",                      # "auto" also works, since spec is a list
+  data     = list(penguins = penguins),
+  title    = "Pan & Zoom (penguins)"
+)
 
 
 
@@ -655,6 +856,109 @@ runMosaicApp(
 
 
 
+
+
+
+# Raster
+
+# 1) Define the spec
+taxi_spec <- list(
+  meta = list(
+    title       = "NYC Taxi Rides",
+    description = paste(
+      "Pickup/dropoff points for 1M NYC taxi rides on Jan 1–3, 2010.",
+      "Drag to filter both maps.",
+      "Requires DuckDB 'httpfs' + 'spatial' extensions.",
+      sep = "\n"
+    )
+  ),
+  config = list(extensions = c("httpfs", "spatial")),
+  data = list(
+    rides = list(
+      file   = "https://idl.uw.edu/mosaic-datasets/data/nyc-rides-2010.parquet",
+      select = c(
+        "pickup_datetime::TIMESTAMP AS datetime",
+        "ST_Transform(ST_Point(pickup_latitude, pickup_longitude),'EPSG:4326','ESRI:102718') AS pick",
+        "ST_Transform(ST_Point(dropoff_latitude, dropoff_longitude),'EPSG:4326','ESRI:102718') AS drop"
+      )
+    ),
+    trips = paste(
+      "SELECT",
+      "  (HOUR(datetime) + MINUTE(datetime)/60) AS time,",
+      "  ST_X(pick) AS px, ST_Y(pick) AS py,",
+      "  ST_X(drop) AS dx, ST_Y(drop) AS dy",
+      "FROM rides",
+      sep = "\n"
+    )
+  ),
+  params = list(filter = list(select = "crossfilter")),
+  vconcat = list(
+    list(
+      hconcat = list(
+        # Left: pickup raster + brush
+        list(
+          plot = list(
+            list(mark = "raster", data = list(from = "trips", filterBy = "$filter"),
+                 x = "px", y = "py", bandwidth = 0),
+            list(select = "intervalXY", as = "$filter"),
+            list(mark = "text", data = list(list(label = "Taxi Pickups")),
+                 dx = 10, dy = 10, text = "label",
+                 fill = "black", fontSize = "1.2em",
+                 frameAnchor = "top-left")
+          ),
+          width       = 335, height = 550,
+          margin      = 0, xAxis = NULL, yAxis = NULL,
+          xDomain     = c(975000, 1005000),
+          yDomain     = c(190000, 240000),
+          colorScale  = "symlog", colorScheme = "blues"
+        ),
+        # Spacer
+        list(hspace = 10),
+        # Right: dropoff raster + same brush
+        list(
+          plot = list(
+            list(mark = "raster", data = list(from = "trips", filterBy = "$filter"),
+                 x = "dx", y = "dy", bandwidth = 0),
+            list(select = "intervalXY", as = "$filter"),
+            list(mark = "text", data = list(list(label = "Taxi Dropoffs")),
+                 dx = 10, dy = 10, text = "label",
+                 fill = "black", fontSize = "1.2em",
+                 frameAnchor = "top-left")
+          ),
+          width       = 335, height = 550,
+          margin      = 0, xAxis = NULL, yAxis = NULL,
+          xDomain     = c(975000, 1005000),
+          yDomain     = c(190000, 240000),
+          colorScale  = "symlog", colorScheme = "oranges"
+        )
+      )
+    ),
+    # Vertical space
+    list(vspace = 10),
+    # Histogram + brush
+    list(
+      plot = list(
+        list(mark = "rectY", data = list(from = "trips", filterBy = "$filter"),
+             x = list(bin = "time"),
+             y = list(count = NULL),
+             fill = "steelblue", inset = 0.5),
+        list(select = "intervalX", as = "$filter")
+      ),
+      yTickFormat = "s",
+      xLabel      = "Pickup Hour →",
+      width       = 680,
+      height      = 100
+    )
+  )
+)
+
+# 2) Run the app
+runMosaicApp(
+  spec     = taxi_spec,
+  specType = "json",
+  data     = NULL,
+  title    = "NYC Taxi Rides (Raster + Crossfilter)"
+)
 
 
 
@@ -1080,6 +1384,263 @@ runMosaicApp(
   data = list(proteins = protein_data),
   title = "Protein Design Explorer with Selection Export"
 )
+
+
+
+
+
+
+
+
+
+
+# star example
+
+
+
+# install.packages(c("mosaicShiny","duckdb","DBI","jsonlite","yaml"))
+library(mosaicShiny)
+library(DBI)
+library(duckdb)
+library(jsonlite)
+library(yaml)
+
+# 1) Build the spec as an R list (YAML equivalent)
+gaia_spec <- list(
+  meta = list(
+    title       = "Gaia Star Catalog",
+    description = paste(
+      "A 5M row sample of the 1.8B element Gaia star catalog.",
+      "A `raster` sky map reveals our Milky Way galaxy.",
+      "Select high parallax stars in the histogram to reveal a",
+      "Hertzsprung-Russell diagram in the plot of stellar color vs. magnitude on the right.",
+      "_You may need to wait a few seconds for the dataset to load._",
+      sep = "\n\n"
+    )
+  ),
+  data = list(
+    gaia = paste(
+      "-- compute u and v with natural earth projection",
+      "WITH prep AS (",
+      "  SELECT",
+      "    radians((-l + 540) % 360 - 180) AS lambda,",
+      "    radians(b) AS phi,",
+      "    asin(sqrt(3)/2 * sin(phi)) AS t,",
+      "    t^2 AS t2,",
+      "    t2^3 AS t6,",
+      "    *",
+      "  FROM 'https://idl.uw.edu/mosaic-datasets/data/gaia-5m.parquet'",
+      "  WHERE parallax BETWEEN -5 AND 20",
+      "    AND phot_g_mean_mag IS NOT NULL",
+      "    AND bp_rp IS NOT NULL",
+      ")",
+      "SELECT",
+      "  (1.340264 * lambda * cos(t)) /",
+      "    (sqrt(3)/2 * (1.340264",
+      "      + (-0.081106 * 3 * t2)",
+      "      + (t6 * (0.000893 * 7 + 0.003796 * 9 * t2)))) AS u,",
+      "  t * (1.340264",
+      "      + (-0.081106 * t2)",
+      "      + (t6 * (0.000893 + 0.003796 * t2))) AS v,",
+      "  * EXCLUDE('t','t2','t6')",
+      "FROM prep",
+      sep = "\n"
+    )
+  ),
+  params = list(
+    brush      = list(select = "crossfilter"),
+    bandwidth  = 0,
+    pixelSize  = 2,
+    scaleType  = "sqrt"
+  ),
+  hconcat = list(
+    list(
+      vconcat = list(
+        list(
+          plot = list(
+            list(mark = "raster",
+                 data = list(from = "gaia", filterBy = "$brush"),
+                 x = "u", y = "v",
+                 fill = "density",
+                 bandwidth = "$bandwidth",
+                 pixelSize = "$pixelSize"
+            ),
+            list(select = "intervalXY", pixelSize = 2, as = "$brush")
+          ),
+          xyDomain     = "Fixed",
+          colorScale   = "$scaleType",
+          colorScheme  = "viridis",
+          width        = 440,
+          height       = 250,
+          marginLeft   = 25,
+          marginTop    = 20,
+          marginRight  = 1
+        ),
+        list(
+          hconcat = list(
+            list(
+              plot = list(
+                list(mark = "rectY",
+                     data = list(from = "gaia", filterBy = "$brush"),
+                     x = list(bin = "phot_g_mean_mag"),
+                     y = list(count = NULL),
+                     fill  = "steelblue",
+                     inset = 0.5
+                ),
+                list(select = "intervalX", as = "$brush")
+              ),
+              xDomain     = "Fixed",
+              yScale      = "$scaleType",
+              yGrid       = TRUE,
+              width       = 220,
+              height      = 120,
+              marginLeft  = 65
+            ),
+            list(
+              plot = list(
+                list(mark = "rectY",
+                     data = list(from = "gaia", filterBy = "$brush"),
+                     x = list(bin = "parallax"),
+                     y = list(count = NULL),
+                     fill  = "steelblue",
+                     inset = 0.5
+                ),
+                list(select = "intervalX", as = "$brush")
+              ),
+              xDomain     = "Fixed",
+              yScale      = "$scaleType",
+              yGrid       = TRUE,
+              width       = 220,
+              height      = 120,
+              marginLeft  = 65
+            )
+          )
+        )
+      )
+    ),
+    list(hspace = 10),
+    list(
+      plot = list(
+        list(mark = "raster",
+             data = list(from = "gaia", filterBy = "$brush"),
+             x = "bp_rp",
+             y = "phot_g_mean_mag",
+             fill = "density",
+             bandwidth = "$bandwidth",
+             pixelSize = "$pixelSize"
+        ),
+        list(select = "intervalXY", pixelSize = 2, as = "$brush")
+      ),
+      xyDomain     = "Fixed",
+      colorScale   = "$scaleType",
+      colorScheme  = "viridis",
+      yReverse     = TRUE,
+      width        = 230,
+      height       = 370,
+      marginLeft   = 25,
+      marginTop    = 20,
+      marginRight  = 1
+    )
+  )
+)
+
+# 2) Finally, launch the app in your Viewer:
+runMosaicApp(
+  spec     = gaia_spec,
+  specType = "yaml",
+  data     = NULL,         # all data is loaded via DuckDB + remote Parquet
+  title    = "Gaia Star Catalog"
+)
+
+
+
+
+
+
+
+
+
+
+#Dynamic Rendering (on fly version)
+
+
+# ── 0.  packages ─────────────────────────────────────────────────────────
+library(mosaicShiny)
+
+# ── 1.  mock data  ───────────────────────────────────────────────────────
+set.seed(42)
+n  <- 10000
+df <- data.frame(
+  x         = runif(n, 0, 100),
+  y         = runif(n, 0, 100),
+  cell_type = sample(c("TypeA", "TypeB"), n, TRUE, c(0.6, 0.4))
+)
+
+# ── 2.  Mosaic spec (YAML as R list) ─────────────────────────────────────
+spec <- list(
+  meta = list(
+    title = "Dynamic Density Raster",
+    description = "Zoom in/out – bins stay 2 units wide so resolution sharpens."
+  ),
+
+  data = list(spatial = list()),          # df will be registered in DuckDB
+
+  params = list(pixel = 2),               # pixel‑size Param (expose later!)
+
+  plot = list(
+    list(                                 # the only mark layer
+      mark      = "raster",
+      data      = list(from = "spatial"), # all points
+      x         = "x",
+      y         = "y",
+      fill      = "density",              # count per bin
+      pixelSize = "$pixel"
+    ),
+    list(select = "panZoom", x = "$xs", y = "$ys")
+  ),
+
+  width       = 700,
+  height      = 600,
+  colorScale  = "sqrt",
+  colorScheme = "viridis"                 # put palette **outside** the mark!
+)
+
+# ── 3.  launch ───────────────────────────────────────────────────────────
+runMosaicApp(
+  spec  = spec,
+  data  = list(spatial = df),
+  title = "Dynamic Raster Demo"
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
