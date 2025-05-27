@@ -5,6 +5,7 @@
 #' @param spec      JSON/YAML (as R list, text, or file) or ESM JS code (text or file).
 #' @param specType  One of "auto" (default), "json", "yaml", or "esm".
 #' @param data      Named list of data.frames to register in DuckDB.
+#' @param backend   Database backend: "r" (default) for R DuckDB or "wasm" for browser WASM DuckDB.
 #' @param width     CSS or pixel width (e.g. "100%", "600px", or numeric).
 #' @param height    CSS or pixel height.
 #' @return An htmlwidget that renders the Mosaic visualization.
@@ -13,10 +14,14 @@ mosaic <- function(
     spec,
     specType = c("auto", "json", "yaml", "esm"),
     data     = NULL,
+    backend  = c("r", "wasm"),
     width    = NULL,
     height   = NULL
 ) {
   specType <- match.arg(specType)
+  backend <- match.arg(backend)
+
+  use_wasm <- backend == "wasm"
 
   # 1) Determine format
   fmt <- specType
@@ -77,26 +82,42 @@ mosaic <- function(
     if (is.null(spec_list$height) && !is.null(h <- strip_px(height))) spec_list$height <- h
   }
 
-  # 4) Spin up DuckDB, load arrow (for Arrow connector) and leave extension loading to JS
-  con <- DBI::dbConnect(duckdb::duckdb(), dbdir=":memory:")
-  try(DBI::dbExecute(con, "LOAD 'arrow';"), silent=TRUE)
+  # 4) Spin up DuckDB connection for R backend
+  con <- NULL
+  if (!use_wasm) {
+    con <- DBI::dbConnect(duckdb::duckdb(), dbdir=":memory:")
+    try(DBI::dbExecute(con, "LOAD 'arrow';"), silent=TRUE)
+  }
 
+  # 5) Handle data
+  input_tables <- NULL
   if (!is.null(data)) {
     stopifnot(is.list(data))
-    for (nm in names(data)) {
-      df <- data[[nm]]
-      stopifnot(inherits(df, "data.frame"))
-      df[] <- lapply(df, function(col) if (is.factor(col)) as.character(col) else col)
-      DBI::dbWriteTable(con, nm, df, overwrite=TRUE)
+    if (!use_wasm) {
+      for (nm in names(data)) {
+        df <- data[[nm]]
+        stopifnot(inherits(df, "data.frame"))
+        df[] <- lapply(df, function(col) if (is.factor(col)) as.character(col) else col)
+        DBI::dbWriteTable(con, nm, df, overwrite=TRUE)
+      }
+    } else {
+      # For WASM, serialize data for JS
+      input_tables <- list()
+      for (nm in names(data)) {
+        df <- data[[nm]]
+        stopifnot(inherits(df, "data.frame"))
+        df[] <- lapply(df, function(col) if (is.factor(col)) as.character(col) else col)
+        input_tables[[nm]] <- lapply(seq_len(nrow(df)), function(i) as.list(df[i, , drop = FALSE]))
+      }
     }
-    # clear the spec_list$data so JS will use the DuckDB connector
     if (!is.null(spec_list$data)) spec_list$data <- NULL
   }
 
-  # 5) Setup Shiny query handler
-  uid     <- paste0("mosaic_", sprintf("%08x", sample.int(.Machine$integer.max,1)))
+  # 6) Setup Shiny query handler for R backend
+  uid <- paste0("mosaic_", sprintf("%08x", sample.int(.Machine$integer.max,1)))
   session <- shiny::getDefaultReactiveDomain()
-  if (!is.null(session)) {
+
+  if (!use_wasm && !is.null(session) && !is.null(con)) {
     session$userData$mosaicConnections <-
       c(session$userData$mosaicConnections, setNames(list(con), uid))
 
@@ -105,6 +126,13 @@ mosaic <- function(
       {
         req <- session$input[[paste0(uid, "_mosaic_query")]]
         if (is.null(req)) return()
+
+        # Use the connection directly from the outer scope
+        if (is.null(con)) {
+          warning("Connection for widget ", uid, " is not available.")
+          return()
+        }
+
         if (identical(req$type, "exec")) {
           DBI::dbExecute(con, req$sql)
           payload <- list(success=TRUE)
@@ -117,7 +145,7 @@ mosaic <- function(
       }, ignoreNULL=TRUE
     )
 
-    # cleanup
+    # Cleanup
     if (is.null(session$userData$.mosaicCleanup)) {
       session$onSessionEnded(function() {
         lapply(session$userData$mosaicConnections, function(cnn) {
@@ -128,13 +156,16 @@ mosaic <- function(
     }
   }
 
-  # 6) Create widget
+  # 7) Create widget
   widget_data <- list(
-    spec     = spec_list,
-    specType = widget_type,
-    specText = spec_text,
-    widgetId = uid
+    spec         = spec_list,
+    specType     = widget_type,
+    specText     = spec_text,
+    widgetId     = uid,
+    useWasm      = use_wasm,
+    input_tables = input_tables
   )
+
   htmlwidgets::createWidget(
     name         = "mosaic",
     x            = widget_data,
