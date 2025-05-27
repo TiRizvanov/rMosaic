@@ -1,4 +1,4 @@
-// mosaic.js (Revised v6)
+// mosaic.js (Revised with fixed WASM data loading)
 // Helper function to decode base64 to Uint8Array
 function base64ToUint8Array(base64) {
   try {
@@ -15,25 +15,40 @@ function base64ToUint8Array(base64) {
   }
 }
 
-// Helper function to convert row-oriented data (array of objects) to column-oriented data (object of arrays)
+// Helper function to convert row-oriented data to column-oriented data
 function convertRowOrientedToColumnOriented(rows) {
   if (!rows || rows.length === 0) {
     return {};
   }
   const columns = {};
-  // Initialize columns based on keys from the first row
   const keys = Object.keys(rows[0]);
   for (const key of keys) {
     columns[key] = [];
   }
-  // Populate column arrays
   for (const row of rows) {
     for (const key of keys) {
-      // Ensure row has the key to avoid errors if data is ragged
       columns[key].push(row.hasOwnProperty(key) ? row[key] : null);
     }
   }
   return columns;
+}
+
+// Helper function to format values for SQL
+function formatSQLValue(value) {
+  if (value === null || value === undefined) {
+    return 'NULL';
+  } else if (typeof value === 'string') {
+    const escaped = value.replace(/'/g, "''");
+    return `'${escaped}'`;
+  } else if (typeof value === 'number') {
+    return value.toString();
+  } else if (typeof value === 'boolean') {
+    return value ? 'TRUE' : 'FALSE';
+  } else {
+    const str = String(value);
+    const escaped = str.replace(/'/g, "''");
+    return `'${escaped}'`;
+  }
 }
 
 HTMLWidgets.widget({
@@ -45,6 +60,8 @@ HTMLWidgets.widget({
     let widgetIdInstance = null;
     let handlerRegistered = false;
     let coordinator = null;
+    let wasmConnector = null;
+    let useWasm = false;
 
     function shinyConnector(wid) {
       return {
@@ -86,25 +103,25 @@ HTMLWidgets.widget({
           try {
             if (queryType === 'arrow') {
               console.log(`[mosaic][${wid}] → processing 'arrow' type response for request ${message.request}. Data type from Shiny: ${typeof message.data}`);
-              if (typeof message.data === 'string') { // Base64 encoded Arrow IPC string
+              if (typeof message.data === 'string') {
                 const ipcBytes = base64ToUint8Array(message.data);
                 if (window.flechette && typeof window.flechette.fromIPC === 'function') {
                   resolvedData = window.flechette.fromIPC(ipcBytes);
                   console.log(`[mosaic][${wid}] ✓ Deserialized flechette.Table from IPC string using flechette.fromIPC().`);
                 } else {
-                   throw new Error(`[mosaic][${wid}] window.flechette.fromIPC is not available.`);
+                  throw new Error(`[mosaic][${wid}] window.flechette.fromIPC is not available.`);
                 }
-              } else if (Array.isArray(message.data)) { // JS array of objects
+              } else if (Array.isArray(message.data)) {
                 console.warn(`[mosaic][${wid}] ⚠ Received JS array for 'arrow' query (request ${message.request}). Attempting to convert to flechette.Table using tableFromArrays.`);
                 if (window.flechette && typeof window.flechette.tableFromArrays === 'function') {
                   const columnOrientedData = convertRowOrientedToColumnOriented(message.data);
                   resolvedData = window.flechette.tableFromArrays(columnOrientedData);
-                  console.log(`[mosaic][${wid}] ✓ Converted JS array to flechette.Table using flechette.tableFromArrays().`);
+                  console.log(`[mosaic][${wid}] ✓ Converted JS array to flechette.Table using tableFromArrays().`);
                 } else {
-                  console.error(`[mosaic][${wid}] ✗ window.flechette.tableFromArrays utility not found. Passing JS array as is. This will likely cause issues.`);
+                  console.error(`[mosaic][${wid}] ✗ window.flechette.tableFromArrays utility not found. Passing JS array as is.`);
                   resolvedData = message.data;
                 }
-              } else if (typeof message.data === 'object' && message.data !== null && message.data.constructor && (message.data.constructor.name === 'Table' || message.data.constructor.name === 'FlechetteTable')) { // Check for Arrow or Flechette Table
+              } else if (typeof message.data === 'object' && message.data !== null && message.data.constructor && (message.data.constructor.name === 'Table' || message.data.constructor.name === 'FlechetteTable')) {
                 console.log(`[mosaic][${wid}] Data for 'arrow' query appears to be an Arrow/Flechette Table object. Using as is. Constructor: ${message.data.constructor.name}`);
                 resolvedData = message.data;
               } else {
@@ -130,83 +147,175 @@ HTMLWidgets.widget({
       renderValue: async function(x) {
         widgetIdInstance = x.widgetId;
         const wid = widgetIdInstance;
+        useWasm = x.useWasm || false;
         console.log(`[mosaic][${wid}] — renderValue() invoked with payload:`, x);
+        console.log(`[mosaic][${wid}] Using ${useWasm ? 'WASM' : 'R native'} DuckDB backend`);
 
         let vgplot, mosaicSpec;
         try {
           vgplot = window.vgplot;
           mosaicSpec = window.mosaicSpec;
           if (!vgplot || !mosaicSpec || !window.flechette) throw new Error("Bundled vgplot, mosaicSpec, or flechette not found on window object.");
-          console.log(`[mosaic][${wid}] ✓ Libraries accessed. vgplot.registerMarks ${vgplot.registerMarks ? 'available' : 'NOT available (this might be ok)'}.`);
+          console.log(`[mosaic][${wid}] ✓ Libraries accessed.`);
 
           if (!coordinator) {
             coordinator = vgplot.coordinator();
             console.log(`[mosaic][${wid}] ✓ Coordinator initialized.`);
           }
-          coordinator.databaseConnector(shinyConnector(wid));
-          console.log(`[mosaic][${wid}] ✓ DatabaseConnector set on coordinator.`);
 
+          // Set up the appropriate connector
+          if (useWasm) {
+            if (window.vgplot.wasmConnector) {
+              console.log(`[mosaic][${wid}] Initializing WASM connector via vgplot...`);
+              try {
+                wasmConnector = await window.vgplot.wasmConnector();
+                coordinator.databaseConnector(wasmConnector);
+                console.log(`[mosaic][${wid}] ✓ WASM connector initialized and set.`);
+              } catch (e) {
+                console.error(`[mosaic][${wid}] Failed to initialize WASM connector:`, e);
+                console.log(`[mosaic][${wid}] Falling back to R backend...`);
+                useWasm = false;
+                coordinator.databaseConnector(shinyConnector(wid));
+              }
+            } else if (window.createWasmConnector) {
+              console.log(`[mosaic][${wid}] Initializing custom WASM connector...`);
+              try {
+                wasmConnector = await window.createWasmConnector();
+                coordinator.databaseConnector(wasmConnector);
+                console.log(`[mosaic][${wid}] ✓ Custom WASM connector initialized and set.`);
+              } catch (e) {
+                console.error(`[mosaic][${wid}] Failed to initialize custom WASM connector:`, e);
+                console.log(`[mosaic][${wid}] Falling back to R backend...`);
+                useWasm = false;
+                coordinator.databaseConnector(shinyConnector(wid));
+              }
+            } else {
+              console.warn(`[mosaic][${wid}] WASM connector not available, falling back to R backend.`);
+              useWasm = false;
+              coordinator.databaseConnector(shinyConnector(wid));
+            }
+          } else {
+            coordinator.databaseConnector(shinyConnector(wid));
+            console.log(`[mosaic][${wid}] ✓ Shiny DatabaseConnector set on coordinator.`);
+          }
         } catch (err) {
           console.error(`[mosaic][${wid}] Library or coordinator setup failed:`, err);
-          el.innerText = "Failed to load Mosaic libraries or setup coordinator. Check console."; return;
+          el.innerText = "Failed to load Mosaic libraries or setup coordinator. Check console.";
+          return;
         }
 
-        if (!handlerRegistered) registerHandler(wid);
+        if (!useWasm && !handlerRegistered) {
+          registerHandler(wid);
+        }
 
+        // Handle input tables
         if (x.input_tables) {
           console.log(`[mosaic][${wid}] → Processing input_tables from R:`, x.input_tables);
-          for (const tableName in x.input_tables) {
-            try {
-              let tableData = x.input_tables[tableName];
-              let finalTableData = tableData;
 
-              if (typeof tableData === 'string') {
-                console.log(`[mosaic][${wid}] Input table '${tableName}' is a string. Attempting to decode as Arrow IPC and convert to flechette.Table.`);
-                const ipcBytes = base64ToUint8Array(tableData);
-                if (window.flechette && typeof window.flechette.fromIPC === 'function') {
-                  finalTableData = window.flechette.fromIPC(ipcBytes);
-                  console.log(`[mosaic][${wid}] ✓ Decoded input table '${tableName}' to flechette.Table using flechette.fromIPC().`);
-                } else {
-                  throw new Error(`window.flechette.fromIPC not available to decode input table '${tableName}'.`);
+          if (useWasm) {
+            // For WASM, load data into DuckDB using SQL
+            for (const tableName in x.input_tables) {
+              try {
+                let tableData = x.input_tables[tableName];
+
+                if (Array.isArray(tableData) && tableData.length > 0) {
+                  // Determine columns from the first row
+                  const columns = Object.keys(tableData[0]);
+
+                  // Infer column types based on first row values
+                  const columnTypes = columns.map(col => {
+                    const val = tableData[0][col];
+                    if (typeof val === 'number') return 'DOUBLE';
+                    if (typeof val === 'string') return 'VARCHAR';
+                    if (typeof val === 'boolean') return 'BOOLEAN';
+                    return 'VARCHAR'; // Default to string
+                  });
+
+                  // Create table
+                  const createTableSQL = `CREATE TABLE IF NOT EXISTS ${tableName} (${columns.map((col, i) => `"${col}" ${columnTypes[i]}`).join(', ')})`;
+                  console.log(`[mosaic][${wid}] Executing SQL:`, createTableSQL);
+                  await coordinator.exec([createTableSQL]);
+                  console.log(`[mosaic][${wid}] Table '${tableName}' created.`);
+
+                  // Insert data in batches to avoid large SQL statements
+                  const batchSize = 100;
+                  for (let i = 0; i < tableData.length; i += batchSize) {
+                    const batch = tableData.slice(i, i + batchSize);
+                    const values = batch.map(row => `(${columns.map(col => formatSQLValue(row[col])).join(', ')})`).join(', ');
+                    const insertSQL = `INSERT INTO ${tableName} VALUES ${values}`;
+                    console.log(`[mosaic][${wid}] Executing INSERT SQL for batch ${i / batchSize + 1}`);
+                    await coordinator.exec([insertSQL]);
+                  }
+
+                  console.log(`[mosaic][${wid}] ✓ Created and populated table '${tableName}' in WASM DuckDB`);
+
+                  // Verify table creation (optional debugging)
+                  const result = await coordinator.query({ sql: `SELECT COUNT(*) FROM ${tableName}`, type: 'json' });
+                  console.log(`[mosaic][${wid}] Table '${tableName}' has ${result[0]['count(*)']} rows.`);
                 }
-              } else if (Array.isArray(tableData)) {
-                 console.log(`[mosaic][${wid}] Input table '${tableName}' is a JS array. Attempting flechette.Table conversion using tableFromArrays.`);
-                 if (window.flechette && typeof window.flechette.tableFromArrays === 'function') {
-                    try {
-                        const columnOrientedData = convertRowOrientedToColumnOriented(tableData);
-                        finalTableData = window.flechette.tableFromArrays(columnOrientedData);
-                        console.log(`[mosaic][${wid}] ✓ Converted JS array for input table '${tableName}' to flechette.Table using tableFromArrays.`);
-                    } catch (convErr) {
-                        console.warn(`[mosaic][${wid}] ⚠ Failed to convert JS array for input table '${tableName}' to flechette.Table, using raw array. Error:`, convErr);
-                        finalTableData = tableData;
-                    }
-                 } else {
-                    console.error(`[mosaic][${wid}] ✗ window.flechette.tableFromArrays utility not found for input table '${tableName}'. Using raw array.`);
-                    finalTableData = tableData;
-                 }
+              } catch (e) {
+                console.error(`[mosaic][${wid}] Error loading table '${tableName}' into WASM:`, e);
               }
-              coordinator.input(tableName, finalTableData);
-              console.log(`[mosaic][${wid}] ✓ Registered input table '${tableName}' with coordinator. Type: ${finalTableData ? finalTableData.constructor.name : typeof finalTableData}`);
-            } catch (e) {
-              console.error(`[mosaic][${wid}] Error processing input table '${tableName}':`, e);
+            }
+          } else {
+            // For R backend, register tables with coordinator
+            for (const tableName in x.input_tables) {
+              try {
+                let tableData = x.input_tables[tableName];
+                let finalTableData = tableData;
+
+                if (typeof tableData === 'string') {
+                  console.log(`[mosaic][${wid}] Input table '${tableName}' is a string. Attempting to decode as Arrow IPC.`);
+                  const ipcBytes = base64ToUint8Array(tableData);
+                  if (window.flechette && typeof window.flechette.fromIPC === 'function') {
+                    finalTableData = window.flechette.fromIPC(ipcBytes);
+                    console.log(`[mosaic][${wid}] ✓ Decoded input table '${tableName}' to flechette.Table.`);
+                  } else {
+                    throw new Error(`window.flechette.fromIPC not available.`);
+                  }
+                } else if (Array.isArray(tableData)) {
+                  console.log(`[mosaic][${wid}] Input table '${tableName}' is a JS array.`);
+                  if (window.flechette && typeof window.flechette.tableFromArrays === 'function') {
+                    try {
+                      const columnOrientedData = convertRowOrientedToColumnOriented(tableData);
+                      finalTableData = window.flechette.tableFromArrays(columnOrientedData);
+                      console.log(`[mosaic][${wid}] ✓ Converted JS array to flechette.Table.`);
+                    } catch (convErr) {
+                      console.warn(`[mosaic][${wid}] ⚠ Failed to convert, using raw array.`, convErr);
+                      finalTableData = tableData;
+                    }
+                  } else {
+                    console.error(`[mosaic][${wid}] ✗ window.flechette.tableFromArrays not found.`);
+                    finalTableData = tableData;
+                  }
+                }
+                coordinator.input(tableName, finalTableData);
+                console.log(`[mosaic][${wid}] ✓ Registered input table '${tableName}' with coordinator.`);
+              } catch (e) {
+                console.error(`[mosaic][${wid}] Error processing input table '${tableName}':`, e);
+              }
             }
           }
         }
 
+        // Load extensions (only for R backend)
         try {
-          const defaultExtensions = ["INSTALL httpfs;", "LOAD httpfs;", "INSTALL spatial;", "LOAD spatial;"];
-          await coordinator.exec(defaultExtensions);
-          console.log(`[mosaic][${wid}] ✓ Default extensions loaded via coordinator.`);
-          if (x.spec && x.spec.config && x.spec.config.extensions && Array.isArray(x.spec.config.extensions)) {
-            const specExtensions = x.spec.config.extensions.flatMap(ext => [`INSTALL ${ext};`, `LOAD ${ext};`]);
-            await coordinator.exec(specExtensions);
-            console.log(`[mosaic][${wid}] ✓ Spec extensions loaded:`, x.spec.config.extensions);
+          if (!useWasm) {
+            const defaultExtensions = ["INSTALL httpfs;", "LOAD httpfs;", "INSTALL spatial;", "LOAD spatial;"];
+            await coordinator.exec(defaultExtensions);
+            console.log(`[mosaic][${wid}] ✓ Default extensions loaded via coordinator.`);
+
+            if (x.spec && x.spec.config && x.spec.config.extensions && Array.isArray(x.spec.config.extensions)) {
+              const specExtensions = x.spec.config.extensions.flatMap(ext => [`INSTALL ${ext};`, `LOAD ${ext};`]);
+              await coordinator.exec(specExtensions);
+              console.log(`[mosaic][${wid}] ✓ Spec extensions loaded:`, x.spec.config.extensions);
+            }
           }
         } catch (err) {
           console.error(`[mosaic][${wid}] Extension loading failed:`, err);
-          el.innerText = "Failed to load DuckDB extensions. Check console."; return;
         }
 
+        // Render the visualization
         el.innerHTML = "";
         try {
           console.log(`[mosaic][${wid}] → Parsing spec (type: ${x.specType}):`, x.spec);
@@ -214,7 +323,8 @@ HTMLWidgets.widget({
           if (x.specType === "esmText") {
             const blob = new Blob([x.specText], { type: "application/javascript" });
             const url = URL.createObjectURL(blob);
-            const mod = await import(url); view = mod.default;
+            const mod = await import(url);
+            view = mod.default;
             URL.revokeObjectURL(url);
             console.log(`[mosaic][${wid}] ✓ ESM module imported.`);
           } else {
@@ -231,7 +341,11 @@ HTMLWidgets.widget({
           console.log(`[mosaic][${wid}] ✓ View appended to DOM.`);
         } catch (e) {
           console.error(`[mosaic][${wid}] Error during spec parsing or rendering:`, e);
-          el.innerHTML = `<div style="color:red; padding:10px; font-family:sans-serif;"><h4>Mosaic Rendering Error</h4><p><strong>Message:</strong> ${e.message}</p><pre style="white-space:pre-wrap; font-size:0.8em; background:#f0f0f0; padding:5px; border:1px solid #ccc;">${e.stack}</pre></div>`;
+          el.innerHTML = `<div style="color:red; padding:10px; font-family:sans-serif;">
+            <h4>Mosaic Rendering Error</h4>
+            <p><strong>Message:</strong> ${e.message}</p>
+            <pre style="white-space:pre-wrap; font-size:0.8em; background:#f0f0f0; padding:5px; border:1px solid #ccc;">${e.stack}</pre>
+          </div>`;
         }
       },
       resize: function(w, h) {
