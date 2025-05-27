@@ -303,7 +303,7 @@ runMosaicApp(
 
 ## B) JSON
 runMosaicApp(
- spec     = voronoi_json,
+  spec     = voronoi_json,
   specType = "json",
   data     = list(penguins = penguins_df),
   title    = "Voronoi Diagram (JSON)"
@@ -1388,6 +1388,15 @@ runMosaicApp(
 
 
 
+#WASM
+runMosaicApp(
+  spec = protein_spec,
+  specType = "json",
+  data = list(proteins = protein_data),
+  title = "Protein Design Explorer with Selection Export",
+  backend = "wasm"
+)
+
 
 
 
@@ -1551,6 +1560,16 @@ runMosaicApp(
   data     = NULL,         # all data is loaded via DuckDB + remote Parquet
   title    = "Gaia Star Catalog"
 )
+
+# WASM
+runMosaicApp(
+  spec     = gaia_spec,
+  specType = "yaml",
+  data     = NULL,         # all data is loaded via DuckDB + remote Parquet
+  title    = "Gaia Star Catalog",
+  backend = "wasm"
+)
+
 
 
 
