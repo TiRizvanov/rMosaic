@@ -9,11 +9,13 @@ runMosaicApp <- function(
     spec,
     specType = c("auto", "json", "yaml", "esm"),
     data,
-    title   = NULL,
-    width   = "100%",
-    height  = "600px"
+    backend  = c("r", "wasm"),
+    title    = NULL,
+    width    = "100%",
+    height   = "600px"
 ) {
   specType <- match.arg(specType)
+  backend <- match.arg(backend)
 
   if (requireNamespace("rstudioapi", quietly=TRUE) &&
       rstudioapi::hasFun("viewer")
@@ -23,6 +25,7 @@ runMosaicApp <- function(
 
   ui <- shiny::fluidPage(
     if (!is.null(title)) shiny::titlePanel(title),
+    shiny::p(paste("Using", ifelse(backend == "wasm", "WASM DuckDB (browser-side)", "R DuckDB (server-side)"), "backend")),
     mosaicOutput("mosaicPlot", width = width, height = height)
   )
   server <- function(input, output, session) {
@@ -31,6 +34,7 @@ runMosaicApp <- function(
         spec     = spec,
         specType = specType,
         data     = data,
+        backend  = backend,
         width    = width,
         height   = height
       )
