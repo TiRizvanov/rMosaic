@@ -971,131 +971,159 @@ runMosaicApp(
 # Olympic Athletes Dashboard (fixed selection logic)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# 1) load mosaicShiny
-library(mosaicShiny)
+# 1) Install required packages if you haven’t already:
+# install.packages(c("mosaicShiny", "duckdb", "DBI", "jsonlite", "yaml"))
 
-# 2) generate some mock athlete data
+library(mosaicShiny)
+library(DBI)
+library(duckdb)
+library(jsonlite)
+library(yaml)
+
+# 2) Generate mock athlete data
 set.seed(123)
 n <- 500
 athletes_df <- data.frame(
   name        = paste("Athlete", seq_len(n)),
-  nationality = sample(c("USA","CAN","GBR","AUS","CHN","RUS"), n, replace=TRUE),
-  sex         = sample(c("male","female"),         n, replace=TRUE),
-  height      = round(rnorm(n, mean=1.75, sd=0.1),  2),
-  weight      = round(rnorm(n, mean=70,   sd=10),   1),
+  nationality = sample(c("USA","CAN","GBR","AUS","CHN","RUS"), n, replace = TRUE),
+  sex         = sample(c("male","female"),         n, replace = TRUE),
+  height      = round(rnorm(n, mean = 1.75, sd = 0.10), 2),
+  weight      = round(rnorm(n, mean = 70,   sd = 10.0), 1),
   sport       = sample(
     c("athletics","swimming","boxing","judo",
       "cycling","volleyball"),
-    n, replace=TRUE
+    n, replace = TRUE
   ),
   stringsAsFactors = FALSE
 )
 
-# 3) build the spec as an R list
-spec <- list(
-  params = list(
-    # single crossfilter to accumulate menus/search/brush
-    filter = list(select = "crossfilter"),
-    # separate hover selection for table→scatter linking
-    hover  = list(select = "intersect", empty = TRUE)
+# 3) Build the Vega-Lite spec as an R list, matching the original Olympic Athletes example
+olympics_spec <- list(
+  meta = list(
+    title       = "Olympic Athletes",
+    description = "An interactive dashboard of athlete statistics. The menus and searchbox filter the display and are automatically populated by backing data columns."
   ),
-
+  data = list(
+    # This key ("athletes") will be matched to athletes_df via runMosaicApp’s data argument
+    athletes = athletes_df
+  ),
+  params = list(
+    # First filter accumulates Sport/ Sex/ Name inputs
+    category = list(select = "intersect"),
+    query    = list(select = "intersect", include = "$category"),
+    # Separate hover selection drives highlighting in the scatterplot
+    hover    = list(select = "intersect", empty = TRUE)
+  ),
   hconcat = list(
-    list(vconcat = list(
-      # row 1: menus + search
-      list(hconcat = list(
-        list(input   = "menu",
-             label   = "Sport",
-             from    = "athletes",
-             column  = "sport",
-             as      = "$filter"),
-        list(input   = "menu",
-             label   = "Sex",
-             from    = "athletes",
-             column  = "sex",
-             as      = "$filter"),
-        list(input    = "search",
-             label    = "Name",
-             from     = "athletes",
-             column   = "name",
-             type     = "contains",
-             as       = "$filter")
-      )),
-
-      # small gap
-      list(vspace = 10),
-
-      # row 2: scatter + regression + brush + hover
-      list(plot = list(
-        # scatter of filtered athletes
-        list(mark    = "dot",
-             data    = list(from = "athletes", filterBy = "$filter"),
-             x       = "weight",
-             y       = "height",
-             fill    = "sex",
-             r       = 2,
-             opacity = 0.2),
-
-        # regression over that same filtered set
-        list(mark   = "regressionY",
-             data   = list(from = "athletes", filterBy = "$filter"),
-             x      = "weight",
-             y      = "height",
-             stroke = "sex"),
-
-        # brush to update the same crossfilter
-        list(select = "intervalXY",
-             as     = "$filter",
-             brush  = list(fillOpacity = 0, stroke = "black")),
-
-        # hovered points, driven by the table
-        list(mark        = "dot",
-             data        = list(from = "athletes", filterBy = "$hover"),
-             x           = "weight",
-             y           = "height",
-             fill        = "sex",
-             stroke      = "currentColor",
-             strokeWidth = 1,
-             r           = 3)
-      ),
-      # keep the axes fixed
-      xyDomain    = "Fixed",
-      colorDomain = "Fixed",
-      margins     = list(left = 35, top = 20, right = 1),
-      width       = 570,
-      height      = 350),
-
-      # tiny vertical space
-      list(vspace = 5),
-
-      # row 3: the table input (drives $hover)
-      list(
-        input    = "table",
-        from     = "athletes",
-        maxWidth = 570,
-        height   = 250,
-        filterBy = "$filter",
-        as       = "$hover",
-        columns  = c("name","nationality","sex","height","weight","sport"),
-        width    = list(
-          name        = 180,
-          nationality = 100,
-          sex         = 50,
-          height      = 50,
-          weight      = 50,
-          sport       = 100
+    list(
+      vconcat = list(
+        # Row 1: Sport menu, Sex menu, Name search
+        list(
+          hconcat = list(
+            list(
+              input  = "menu",
+              label  = "Sport",
+              as     = "$category",
+              from   = "athletes",
+              column = "sport"
+            ),
+            list(
+              input  = "menu",
+              label  = "Sex",
+              as     = "$category",
+              from   = "athletes",
+              column = "sex"
+            ),
+            list(
+              input    = "search",
+              label    = "Name",
+              filterBy = "$category",
+              as       = "$query",
+              from     = "athletes",
+              column   = "name",
+              type     = "contains"
+            )
+          )
+        ),
+        # Small vertical gap
+        list(vspace = 10),
+        # Row 2: Scatterplot + regression + brushing + hover points
+        list(
+          plot = list(
+            # 1) Dots of all filtered athletes
+            list(
+              mark    = "dot",
+              data    = list(from = "athletes", filterBy = "$query"),
+              x       = "weight",
+              y       = "height",
+              fill    = "sex",
+              r       = 2,
+              opacity = 0.1
+            ),
+            # 2) Regression lines (separate by sex)
+            list(
+              mark   = "regressionY",
+              data   = list(from = "athletes", filterBy = "$query"),
+              x      = "weight",
+              y      = "height",
+              stroke = "sex"
+            ),
+            # 3) Brush to update the same "$query" filter
+            list(
+              select = "intervalXY",
+              as     = "$query",
+              brush  = list(fillOpacity = 0, stroke = "black")
+            ),
+            # 4) Highlight hovered points in front
+            list(
+              mark        = "dot",
+              data        = list(from = "athletes", filterBy = "$hover"),
+              x           = "weight",
+              y           = "height",
+              fill        = "sex",
+              stroke      = "currentColor",
+              strokeWidth = 1,
+              r           = 3
+            )
+          ),
+          xyDomain    = "Fixed",
+          colorDomain = "Fixed",
+          margins     = list(left = 35, top = 20, right = 1),
+          width       = 570,
+          height      = 350
+        ),
+        # Row 3: Tiny vertical gap
+        list(vspace = 5),
+        # Row 4: Table input driving $hover
+        list(
+          input    = "table",
+          from     = "athletes",
+          maxWidth = 570,
+          height   = 250,
+          filterBy = "$query",
+          as       = "$hover",
+          columns  = c("name","nationality","sex","height","weight","sport"),
+          width    = list(
+            name        = 180,
+            nationality = 100,
+            sex         = 50,
+            height      = 50,
+            weight      = 50,
+            sport       = 100
+          )
         )
       )
-    ))
+    )
   )
 )
 
-# 4) launch it!
+# 4) Launch the app, supplying athletes_df under the “athletes” key
 runMosaicApp(
-  spec     = spec,
-  specType = "auto",
-  data     = list(athletes = athletes_df),
-  title    = "Olympic Athletes Dashboard (fixed)"
+  spec     = olympics_spec,
+  specType = "yaml",                         # interpret our list as a Vega-Lite/YAML spec
+  data     = list(athletes = athletes_df),   # link in-memory data
+  title    = "Olympic Athletes Dashboard",
+  backend  = "wasm"                          # use the WebAssembly DuckDB backend
 )
 
 
