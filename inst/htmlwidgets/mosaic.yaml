@@ -1,5 +1,5 @@
 dependencies:
   - name: mosaic-bundle
-    version: 0.16.2
+    version: 0.17.0
     src: htmlwidgets/lib
     script: mosaic-bundle.js
