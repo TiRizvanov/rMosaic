@@ -1,6 +1,6 @@
-# mosaicShiny
+# rMosaic
 
-**mosaicShiny** embeds the [Mosaic](https://github.com/uwdata/mosaic) declarative visualization framework in R and Shiny, letting you define interactive, data-driven plots via JSON, YAML, or inline ESM specs and back them with DuckDB for high-performance querying.
+**rMosaic** embeds the [Mosaic](https://github.com/uwdata/mosaic) declarative visualization framework in R and Shiny, letting you define interactive, data-driven plots via JSON, YAML, or inline ESM specs and back them with DuckDB for high-performance querying.
 
 ---
 
@@ -19,11 +19,11 @@
 
 ```r
 # If you are in the package directory:
-install.packages("mosaicShiny")
+install.packages("rMosaic")
 
 # Or install development version from GitHub:
 # install.packages("remotes")
-remotes::install_github("TiRizvanov/mosaicShiny")
+remotes::install_github("TiRizvanov/rMosaic")
 ```
 
 ---
@@ -31,7 +31,7 @@ remotes::install_github("TiRizvanov/mosaicShiny")
 ## Quick Start
 
 ```r
-library(mosaicShiny)
+library(rMosaic)
 
 # Prepare a small data.frame
 df <- data.frame(
@@ -66,7 +66,7 @@ runMosaicApp(
   spec     = spec_json,
   specType = "json",
   data     = list(df = df),
-  title    = "mosaicShiny Demo"
+  title    = "rMosaic Demo"
 )
 ```
 
@@ -150,7 +150,7 @@ We recommend using the [`usethis`](https://cran.r-project.org/package=usethis) a
 3. Write code + tests  
 4. Submit a PR  
 
-Please file any issues on [GitHub Issues](https://github.com/yourusername/mosaicShiny/issues).
+Please file any issues on [GitHub Issues](https://github.com/TiRizvanov/rMosaic/issues).
 
 ---
 

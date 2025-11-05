@@ -1,4 +1,4 @@
-library(mosaicShiny)
+library(rMosaic)
 library(arrow)
 library(base64enc)
 # 1) JSON (string)
@@ -48,7 +48,7 @@ runMosaicApp(esm_text, specType="esm", data=list(iris=iris), title="ESM Iris")
 
 
 # ▶︎ APPLE STOCK — JSON
-library(mosaicShiny)
+library(rMosaic)
 
 # 1) Mock data: 100 days of “Close” prices
 set.seed(42)
@@ -76,7 +76,7 @@ runMosaicApp(
 
 
 # ▶︎ APPLE STOCK — YAML
-library(mosaicShiny)
+library(rMosaic)
 
 # reuse mock_aapl from above
 
@@ -107,7 +107,7 @@ runMosaicApp(
 
 
 # ▶︎ APPLE STOCK — ESM
-library(mosaicShiny)
+library(rMosaic)
 
 # reuse mock_aapl
 
@@ -142,8 +142,8 @@ runMosaicApp(
 # Second ex
 
 
-# install.packages("mosaicShiny")  # if you haven’t already
-library(mosaicShiny)
+# install.packages("rMosaic")  # if you haven’t already
+library(rMosaic)
 
 # 1) Synthetic "penguins" dataset
 set.seed(42)
@@ -328,7 +328,7 @@ runMosaicApp(
 
 # third
 library(nycflights13)    # Flight data
-library(mosaicShiny)     # Your package
+library(rMosaic)     # Your package
 
 # JSON specification for an interactive, sortable table:
 json_sortable <- '{
@@ -341,7 +341,7 @@ json_sortable <- '{
   "height": 300
 }'
 
-# Simply pass the data frame; mosaicShiny will create the DuckDB table:
+# Simply pass the data frame; rMosaic will create the DuckDB table:
 runMosaicApp(
   json_sortable,
   specType = "json",
@@ -351,7 +351,7 @@ runMosaicApp(
 
 
 library(nycflights13)
-library(mosaicShiny)
+library(rMosaic)
 
 # 1) Define the spec as an R list (YAML)
 yaml_sortable <- list(
@@ -374,7 +374,7 @@ runMosaicApp(
 
 
 library(nycflights13)
-library(mosaicShiny)
+library(rMosaic)
 
 # 1) Define the ESM spec as a JS module exporting a Mosaic spec object:
 esm_sortable <- "
@@ -389,7 +389,7 @@ export default {
 };
 "
 
-# 2) Launch it (mosaicShiny will auto-write `flights` into DuckDB)
+# 2) Launch it (rMosaic will auto-write `flights` into DuckDB)
 runMosaicApp(
   esm_sortable,
   specType = "esm",
@@ -409,9 +409,9 @@ runMosaicApp(
 
 # fourth
 
-# install.packages(c("palmerpenguins","mosaicShiny"))
+# install.packages(c("palmerpenguins","rMosaic"))
 library(palmerpenguins)
-library(mosaicShiny)
+library(rMosaic)
 
 # 1) Prepare the data
 penguins <- na.omit(palmerpenguins::penguins)
@@ -425,7 +425,7 @@ spec <- list(
       "`panZoom` interactors update bound selections per axis."
     )
   ),
-  # telling mosaicShiny we'll supply 'penguins' via data=…
+  # telling rMosaic we'll supply 'penguins' via data=…
   data = list(penguins = list()),
 
   # top‐level layout: two columns of two plots each
@@ -533,7 +533,7 @@ runMosaicApp(
 # NYC Taxi with dots
 
 
-library(mosaicShiny)
+library(rMosaic)
 
 taxi_spec_dots <- list(
 
@@ -697,7 +697,7 @@ runMosaicApp(
 
 #Hexbins
 
-library(mosaicShiny)
+library(rMosaic)
 
 # Modified spec without the unsupported background attribute
 taxi_spec_fixed <- list(
@@ -972,9 +972,9 @@ runMosaicApp(
 # ─────────────────────────────────────────────────────────────────────────────
 
 # 1) Install required packages if you haven’t already:
-# install.packages(c("mosaicShiny", "duckdb", "DBI", "jsonlite", "yaml"))
+# install.packages(c("rMosaic", "duckdb", "DBI", "jsonlite", "yaml"))
 
-library(mosaicShiny)
+library(rMosaic)
 library(DBI)
 library(duckdb)
 library(jsonlite)
@@ -1135,7 +1135,7 @@ runMosaicApp(
 
 
 # Protein Analysis
-library(mosaicShiny)
+library(rMosaic)
 
 # Create data for protein design explorer
 set.seed(123) # For reproducibility
@@ -1435,8 +1435,8 @@ runMosaicApp(
 
 
 
-# install.packages(c("mosaicShiny","duckdb","DBI","jsonlite","yaml"))
-library(mosaicShiny)
+# install.packages(c("rMosaic","duckdb","DBI","jsonlite","yaml"))
+library(rMosaic)
 library(DBI)
 library(duckdb)
 library(jsonlite)
@@ -1612,7 +1612,7 @@ runMosaicApp(
 
 
 # ── 0.  packages ─────────────────────────────────────────────────────────
-library(mosaicShiny)
+library(rMosaic)
 
 # ── 1.  mock data  ───────────────────────────────────────────────────────
 set.seed(42)

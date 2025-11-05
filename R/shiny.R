@@ -5,7 +5,7 @@
 #' @param width,height CSS dimensions (e.g. '100%', '400px') for the container.
 #' @export
 mosaicOutput <- function(outputId, width = "100%", height = "400px") {
-  htmlwidgets::shinyWidgetOutput(outputId, "mosaic", width, height, package = "mosaicShiny")
+  htmlwidgets::shinyWidgetOutput(outputId, "mosaic", width, height, package = "rMosaic")
 }
 
 #' Shiny render function for Mosaic

@@ -171,7 +171,7 @@ mosaic <- function(
     x            = widget_data,
     width        = width,
     height       = height,
-    package      = "mosaicShiny",
+    package      = "rMosaic",
     sizingPolicy = htmlwidgets::sizingPolicy(browser.fill=TRUE)
   )
 }
