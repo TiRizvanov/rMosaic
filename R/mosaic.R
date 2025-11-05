@@ -89,27 +89,62 @@ mosaic <- function(
     try(DBI::dbExecute(con, "LOAD 'arrow';"), silent=TRUE)
   }
 
-  # 5) Handle data
+  # 5) Handle data registration
+  # Process data differently depending on backend (R DuckDB vs browser WASM)
   input_tables <- NULL
   if (!is.null(data)) {
-    stopifnot(is.list(data))
+    # Validate data input
+    if (!is.list(data)) {
+      stop("'data' must be a named list of data.frames")
+    }
+    if (is.null(names(data)) || any(names(data) == "")) {
+      stop("All elements in 'data' list must be named")
+    }
+
     if (!use_wasm) {
+      # R backend: register data.frames as DuckDB tables
       for (nm in names(data)) {
         df <- data[[nm]]
-        stopifnot(inherits(df, "data.frame"))
-        df[] <- lapply(df, function(col) if (is.factor(col)) as.character(col) else col)
-        DBI::dbWriteTable(con, nm, df, overwrite=TRUE)
+        if (!inherits(df, "data.frame")) {
+          stop(sprintf("Element '%s' in data list must be a data.frame, got: %s",
+                       nm, class(df)[1]))
+        }
+
+        # Convert factors to character for safe serialization
+        df[] <- lapply(df, function(col) {
+          if (is.factor(col)) as.character(col) else col
+        })
+
+        # Register table in DuckDB
+        tryCatch({
+          DBI::dbWriteTable(con, nm, df, overwrite = TRUE)
+        }, error = function(e) {
+          stop(sprintf("Failed to register table '%s' in DuckDB: %s", nm, e$message))
+        })
       }
     } else {
-      # For WASM, serialize data for JS
+      # WASM backend: serialize data for browser-side processing
       input_tables <- list()
       for (nm in names(data)) {
         df <- data[[nm]]
-        stopifnot(inherits(df, "data.frame"))
-        df[] <- lapply(df, function(col) if (is.factor(col)) as.character(col) else col)
-        input_tables[[nm]] <- lapply(seq_len(nrow(df)), function(i) as.list(df[i, , drop = FALSE]))
+        if (!inherits(df, "data.frame")) {
+          stop(sprintf("Element '%s' in data list must be a data.frame, got: %s",
+                       nm, class(df)[1]))
+        }
+
+        # Convert factors to character
+        df[] <- lapply(df, function(col) {
+          if (is.factor(col)) as.character(col) else col
+        })
+
+        # Convert to row-oriented format for JSON serialization
+        input_tables[[nm]] <- lapply(seq_len(nrow(df)), function(i) {
+          as.list(df[i, , drop = FALSE])
+        })
       }
     }
+
+    # Clear any existing data specification in the spec
     if (!is.null(spec_list$data)) spec_list$data <- NULL
   }
 

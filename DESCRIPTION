@@ -1,19 +1,31 @@
 Package: rMosaic
 Type: Package
-Title: "Mosaic Shiny Integration"
+Title: Mosaic Shiny Integration
 Version: 0.1.1
-Description: "Embed the Mosaic framework in R, allowing users to declaratively define visualizations (via JSON/YAML specs) and render interactive Mosaic plots in Shiny. Data queries are executed in DuckDB via R, enabling scalable linked visuals."
-License: BSD-3-Clause
-Imports:
-    htmlwidgets (>= 1.5.4),
-    shiny (>= 1.7.0),
-    jsonlite,
-    yaml,
-    DBI,
-    duckdb,
-    arrow
+Authors@R: c(
+    person(
+      "Timur", "Rizvanov",
+      email = "timurr@bu.edu",
+      role = c("aut", "cre")
+    )
+  )
+Description: Embed the Mosaic framework in R, allowing users to declaratively
+    define visualizations (via JSON/YAML specs) and render interactive Mosaic
+    plots in Shiny. Data queries are executed in DuckDB via R, enabling scalable
+    linked visuals.
+License: MIT + file LICENSE
+URL: https://github.com/TiRizvanov/rMosaic
+BugReports: https://github.com/TiRizvanov/rMosaic/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
-URL: https://github.com/TiRizvanov/rMosaic
-BugReports: https://github.com/TiRizvanov/rMosaic/issues
+Depends:
+    R (>= 4.1.0)
+Imports:
+    htmlwidgets (>= 1.5.4),
+    shiny (>= 1.7.0),
+    jsonlite (>= 1.8.0),
+    yaml (>= 2.3.0),
+    DBI (>= 1.1.0),
+    duckdb (>= 0.8.0),
+    arrow (>= 12.0.0)

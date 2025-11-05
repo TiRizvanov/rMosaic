@@ -156,6 +156,5 @@ Please file any issues on [GitHub Issues](https://github.com/TiRizvanov/rMosaic/
 
 ## License
 
-MIT © Your Name or Organization  
+MIT © Timur Rizvanov
 See [LICENSE](./LICENSE) for details.
-```
