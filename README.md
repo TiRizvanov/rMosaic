@@ -10,8 +10,11 @@
 - **Automatic DuckDB** setup and data loading (in-memory or on-disk)  
 - **Scalable**, server-driven queries via Shiny → DuckDB → Mosaic  
 - **Linked interactions**: brushing, cross-filtering, pan/zoom, selection  
-- **Flexible data sources**: R data.frames, Parquet/CSV files, SQL queries  
-- **Zero JavaScript** required to get started  
+- **Flexible data sources**: R data.frames, Parquet/CSV files, SQL queries
+- **Zero JavaScript** required to get started
+
+**Bundled Mosaic Version**: 0.21.1
+This package includes the [Mosaic JavaScript libraries](https://github.com/uwdata/mosaic) (v0.21.1) bundled for use in R and Shiny applications.
 
 ---
 

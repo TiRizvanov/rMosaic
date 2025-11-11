@@ -1472,7 +1472,7 @@ gaia_spec <- list(
       "    AND bp_rp IS NOT NULL",
       ")",
       "SELECT",
-      "  (1.340264 * lambda * cos(t)) /",
+      "  (1.340264 * \"lambda\" * cos(t)) /",
       "    (sqrt(3)/2 * (1.340264",
       "      + (-0.081106 * 3 * t2)",
       "      + (t6 * (0.000893 * 7 + 0.003796 * 9 * t2)))) AS u,",
@@ -1582,14 +1582,6 @@ gaia_spec <- list(
 )
 
 # 2) Finally, launch the app in your Viewer:
-runMosaicApp(
-  spec     = gaia_spec,
-  specType = "yaml",
-  data     = NULL,         # all data is loaded via DuckDB + remote Parquet
-  title    = "Gaia Star Catalog"
-)
-
-# WASM
 runMosaicApp(
   spec     = gaia_spec,
   specType = "yaml",

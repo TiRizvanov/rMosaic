@@ -12,7 +12,7 @@ Authors@R: c(
 Description: Embed the Mosaic framework in R, allowing users to declaratively
     define visualizations (via JSON/YAML specs) and render interactive Mosaic
     plots in Shiny. Data queries are executed in DuckDB via R, enabling scalable
-    linked visuals.
+    linked visuals. Includes Mosaic JavaScript libraries v0.21.1.
 License: MIT + file LICENSE
 URL: https://github.com/TiRizvanov/rMosaic
 BugReports: https://github.com/TiRizvanov/rMosaic/issues
