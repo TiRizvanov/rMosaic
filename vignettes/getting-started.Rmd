@@ -1,0 +1,154 @@
+---
+title: "Getting Started with rMosaic"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with rMosaic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Introduction
+
+**rMosaic** provides R bindings for [Mosaic 0.21.1](https://idl.cs.washington.edu/mosaic/), a framework for declarative, interactive, and scalable visualizations. This vignette demonstrates basic usage with a working example.
+
+## Installation
+
+```{r install}
+# Install from GitHub
+remotes::install_github("YourGitHub/rMosaic")
+```
+
+## Example: Voronoi Diagram with YAML
+
+This example demonstrates a Voronoi diagram with interactive controls using YAML format. The visualization includes:
+- Voronoi cells colored by species
+- Convex hulls around each species group
+- Delaunay mesh connecting points
+- Interactive menus to toggle hull and mesh visibility
+
+```{r voronoi_yaml}
+library(rMosaic)
+
+# Generate synthetic penguins dataset
+set.seed(42)
+penguins_df <- data.frame(
+  bill_length = rnorm(150, mean = 40, sd = 5),
+  bill_depth  = rnorm(150, mean = 18, sd = 3),
+  species     = sample(c("Adelie", "Gentoo", "Chinstrap"), 150, replace = TRUE)
+)
+
+# Define YAML spec as R list
+voronoi_yaml <- list(
+  params = list(
+    mesh = 0,
+    hull = 0
+  ),
+  vconcat = list(
+    # Main plot
+    list(
+      plot = list(
+        list(
+          mark = "voronoi",
+          data = list(from = "penguins"),
+          x = "bill_length",
+          y = "bill_depth",
+          stroke = "white",
+          strokeWidth = 1,
+          strokeOpacity = 0.5,
+          fill = "species",
+          fillOpacity = 0.2
+        ),
+        list(
+          mark = "hull",
+          data = list(from = "penguins"),
+          x = "bill_length",
+          y = "bill_depth",
+          stroke = "species",
+          strokeOpacity = "$hull",
+          strokeWidth = 1.5
+        ),
+        list(
+          mark = "delaunayMesh",
+          data = list(from = "penguins"),
+          x = "bill_length",
+          y = "bill_depth",
+          z = "species",
+          stroke = "species",
+          strokeOpacity = "$mesh",
+          strokeWidth = 1
+        ),
+        list(
+          mark = "dot",
+          data = list(from = "penguins"),
+          x = "bill_length",
+          y = "bill_depth",
+          fill = "species",
+          r = 2
+        ),
+        list(mark = "frame")
+      ),
+      width  = 680,
+      height = 480
+    ),
+    # Interactive controls
+    list(
+      hconcat = list(
+        list(
+          input   = "menu",
+          label   = "Delaunay Mesh",
+          options = list(
+            list(value = 0,   label = "Hide"),
+            list(value = 0.5, label = "Show")
+          ),
+          as = "$mesh"
+        ),
+        list(hspace = 5),
+        list(
+          input   = "menu",
+          label   = "Convex Hull",
+          options = list(
+            list(value = 0, label = "Hide"),
+            list(value = 1, label = "Show")
+          ),
+          as = "$hull"
+        )
+      )
+    )
+  )
+)
+
+# Run the application
+runMosaicApp(
+  spec     = voronoi_yaml,
+  specType = "yaml",
+  data     = list(penguins = penguins_df),
+  title    = "Voronoi Diagram (YAML)"
+)
+```
+
+## Key Features
+
+- **Multiple Format Support**: Define specs in YAML, JSON, or ESM (see other vignettes)
+- **DuckDB Integration**: Efficient server-side or browser WASM DuckDB queries
+- **Interactive Controls**: Menus, sliders, search boxes, and brushing
+- **Shiny Support**: Reactive bindings for Shiny applications
+
+## Next Steps
+
+Explore other vignettes:
+- **format-json.Rmd**: Same visualization using JSON format
+- **format-esm.Rmd**: Same visualization using ESM (JavaScript) format
+- **taxi-crossfilter.Rmd**: Multi-view crossfilter example
+- **athletes-dashboard.Rmd**: Complex dashboard with tables and selections
+- **gaia-stars.Rmd**: Large-scale astronomical data visualization
+- **dynamic-rendering.Rmd**: Dynamic pan/zoom with on-the-fly binning
+
+Check the [Mosaic documentation](https://idl.cs.washington.edu/mosaic/) for all available marks and interactions.

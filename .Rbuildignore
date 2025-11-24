@@ -1,2 +1,14 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^LICENSE\.md$
+^\.github$
+^\.RData$
+^\.Rhistory$
+^\.DS_Store$
+^\.git$
+^\.gitignore$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^README\.Rmd$
+^codecov\.yml$

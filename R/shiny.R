@@ -5,7 +5,13 @@
 #' @param width,height CSS dimensions (e.g. '100%', '400px') for the container.
 #' @export
 mosaicOutput <- function(outputId, width = "100%", height = "400px") {
-  htmlwidgets::shinyWidgetOutput(outputId, "mosaic", width, height, package = "rMosaic")
+  htmlwidgets::shinyWidgetOutput(
+    outputId,
+    "mosaic",
+    width,
+    height,
+    package = "rMosaic"
+  )
 }
 
 #' Shiny render function for Mosaic
@@ -14,6 +20,8 @@ mosaicOutput <- function(outputId, width = "100%", height = "400px") {
 #' @param expr An expression that generates a call to \code{\link{mosaic}()}.
 #' @export
 renderMosaic <- function(expr, env = parent.frame(), quoted = FALSE) {
-  if (!quoted) expr <- substitute(expr)
+  if (!quoted) {
+    expr <- substitute(expr)
+  }
   htmlwidgets::shinyRenderWidget(expr, mosaicOutput, env, quoted = TRUE)
 }

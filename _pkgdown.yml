@@ -1,0 +1,42 @@
+url: https://tirizvanov.github.io/rMosaic/
+template:
+  bootstrap: 5
+  bootswatch: flatly
+
+navbar:
+  structure:
+    left: [home, reference, news]
+    right: [search, github]
+  components:
+    home:
+      icon: fas fa-home fa-lg
+      href: index.html
+    reference:
+      text: Reference
+      href: reference/index.html
+    news:
+      text: News
+      href: news/index.html
+    github:
+      icon: fab fa-github fa-lg
+      href: https://github.com/TiRizvanov/rMosaic
+
+reference:
+- title: Core Functions
+  desc: Main visualization functions
+  contents:
+  - mosaic
+  - mosaicOutput
+  - renderMosaic
+
+- title: Helper Apps
+  desc: Shiny helper applications
+  contents:
+  - runMosaicApp
+  - runMosaicWithExport
+  - runMosaicExport
+
+- title: Selection Functions
+  desc: Functions for handling selections
+  contents:
+  - exportSelection

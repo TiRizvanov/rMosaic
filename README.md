@@ -84,13 +84,13 @@ You can provide your spec as:
 - **File path** (`.json`, `.yaml`, `.js`/`.mjs` for ESM)  
 - **Inline ESM** (raw JS module text via `specType = "esm"`)
 
-See the [examples directory](./inst/examples) for many ready-to-run demos:
-- Voronoi & Delaunay  
-- Sortable, infinite-scroll tables  
-- Contour/heatmap sliders  
-- SPLOM with linked brushing  
-- Map & histogram cross-filter (NYC taxis)  
-- And more…
+See the package vignettes for comprehensive examples:
+- **Getting Started**: `vignette("getting-started", package = "rMosaic")`
+- **Format Options**: JSON, YAML, and ESM formats
+- **NYC Taxi Crossfilter**: Multi-view dashboard with 1M+ records
+- **Olympic Athletes**: Interactive dashboard with tables and selections
+- **Gaia Star Catalog**: Astronomical data with 5M stars
+- **Dynamic Rendering**: Pan/zoom with on-the-fly binning
 
 ---
 

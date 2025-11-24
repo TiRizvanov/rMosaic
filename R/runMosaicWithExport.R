@@ -1,3 +1,6 @@
+#' @importFrom shiny observe observeEvent
+NULL
+
 #' Run a Mosaic Shiny App with selection export
 #'
 #' @inheritParams mosaic
@@ -5,17 +8,18 @@
 #' @param selection_env Environment to store selections in
 #' @export
 runMosaicWithExport <- function(
-    spec,
-    specType = c("auto", "json", "yaml", "esm"),
-    data,
-    title = NULL,
-    width = "100%",
-    height = "600px",
-    selection_env = .GlobalEnv
+  spec,
+  specType = c("auto", "json", "yaml", "esm"),
+  data,
+  title = NULL,
+  width = "100%",
+  height = "600px",
+  selection_env = .GlobalEnv
 ) {
   specType <- match.arg(specType)
 
-  if (requireNamespace("rstudioapi", quietly=TRUE) &&
+  if (
+    requireNamespace("rstudioapi", quietly = TRUE) &&
       rstudioapi::hasFun("viewer")
   ) {
     options(shiny.launch.browser = rstudioapi::viewer)
@@ -26,7 +30,8 @@ runMosaicWithExport <- function(
 
   ui <- shiny::fluidPage(
     shiny::tags$head(
-      shiny::tags$script(shiny::HTML('
+      shiny::tags$script(shiny::HTML(
+        '
         $(document).ready(function() {
           // Function to capture brush state from Mosaic
           window.captureSelection = function() {
@@ -100,20 +105,27 @@ runMosaicWithExport <- function(
             }
           };
         });
-      '))
+      '
+      ))
     ),
     if (!is.null(title)) shiny::titlePanel(title),
     shiny::fluidRow(
-      shiny::column(12,
-                    mosaicOutput("mosaicPlot", width = width, height = height)
+      shiny::column(
+        12,
+        mosaicOutput("mosaicPlot", width = width, height = height)
       )
     ),
     shiny::fluidRow(
-      shiny::column(12, align = "center",
-                    shiny::br(),
-                    shiny::actionButton("importSelectionBtn", "Import Selection to R",
-                                        onclick = "window.captureSelection()"),
-                    shiny::verbatimTextOutput("selectionStatus")
+      shiny::column(
+        12,
+        align = "center",
+        shiny::br(),
+        shiny::actionButton(
+          "importSelectionBtn",
+          "Import Selection to R",
+          onclick = "window.captureSelection()"
+        ),
+        shiny::verbatimTextOutput("selectionStatus")
       )
     )
   )
@@ -152,7 +164,11 @@ runMosaicWithExport <- function(
       params <- input$selection_params
 
       if (is.null(params) || !is.null(params$error)) {
-        msg <- if (!is.null(params$error)) params$error else "No selection parameters received"
+        msg <- if (!is.null(params$error)) {
+          params$error
+        } else {
+          "No selection parameters received"
+        }
         selection_status(msg)
         message(msg)
         return()
@@ -175,17 +191,35 @@ runMosaicWithExport <- function(
       y_col <- NULL
 
       # Extract column names from the spec
-      if (is.list(spec) && "vconcat" %in% names(spec) && length(spec$vconcat) > 0) {
+      if (
+        is.list(spec) && "vconcat" %in% names(spec) && length(spec$vconcat) > 0
+      ) {
         for (section in spec$vconcat) {
-          if (is.list(section) && "hconcat" %in% names(section) && length(section$hconcat) > 0) {
+          if (
+            is.list(section) &&
+              "hconcat" %in% names(section) &&
+              length(section$hconcat) > 0
+          ) {
             for (item in section$hconcat) {
-              if (is.list(item) && "plot" %in% names(item) && length(item$plot) > 0) {
+              if (
+                is.list(item) &&
+                  "plot" %in% names(item) &&
+                  length(item$plot) > 0
+              ) {
                 for (plot_item in item$plot) {
-                  if (is.list(plot_item) && "mark" %in% names(plot_item) && plot_item$mark == "dot") {
-                    if ("x" %in% names(plot_item) && is.character(plot_item$x)) {
+                  if (
+                    is.list(plot_item) &&
+                      "mark" %in% names(plot_item) &&
+                      plot_item$mark == "dot"
+                  ) {
+                    if (
+                      "x" %in% names(plot_item) && is.character(plot_item$x)
+                    ) {
                       x_col <- plot_item$x
                     }
-                    if ("y" %in% names(plot_item) && is.character(plot_item$y)) {
+                    if (
+                      "y" %in% names(plot_item) && is.character(plot_item$y)
+                    ) {
                       y_col <- plot_item$y
                     }
                   }
@@ -232,8 +266,12 @@ runMosaicWithExport <- function(
       }
 
       # Filter the data frame based on the brush
-      selected_df <- df[df[[x_col]] >= x1_val & df[[x_col]] <= x2_val &
-                          df[[y_col]] >= y1_val & df[[y_col]] <= y2_val, ]
+      selected_df <- df[
+        df[[x_col]] >= x1_val &
+          df[[x_col]] <= x2_val &
+          df[[y_col]] >= y1_val &
+          df[[y_col]] <= y2_val,
+      ]
 
       # Make sure we didn't select the whole dataset
       if (nrow(selected_df) < nrow(df) && nrow(selected_df) > 0) {
@@ -241,8 +279,13 @@ runMosaicWithExport <- function(
         selection_name <- store_mosaic_selection(selected_df, selection_env)
 
         # Update status
-        msg <- paste0("Selection imported to R as '", selection_name,
-                      "' with ", nrow(selected_df), " rows")
+        msg <- paste0(
+          "Selection imported to R as '",
+          selection_name,
+          "' with ",
+          nrow(selected_df),
+          " rows"
+        )
         selection_status(msg)
         message(msg)
       } else if (nrow(selected_df) == 0) {
@@ -269,15 +312,23 @@ runMosaicWithExport <- function(
           # Check if indices are valid
           if (max(indices) <= nrow(df)) {
             # Get rows by index
-            selected_df <- df[indices + 1, ]  # +1 for R's 1-based indexing
+            selected_df <- df[indices + 1, ] # +1 for R's 1-based indexing
 
             if (nrow(selected_df) < nrow(df)) {
               # Store the selection
-              selection_name <- store_mosaic_selection(selected_df, selection_env)
+              selection_name <- store_mosaic_selection(
+                selected_df,
+                selection_env
+              )
 
               # Update status
-              msg <- paste0("Selection imported to R as '", selection_name,
-                            "' with ", nrow(selected_df), " rows")
+              msg <- paste0(
+                "Selection imported to R as '",
+                selection_name,
+                "' with ",
+                nrow(selected_df),
+                " rows"
+              )
               selection_status(msg)
               message(msg)
             } else {
