@@ -111,7 +111,7 @@ runMosaicApp(
 - Need advanced control flow or conditional rendering
 - Working from existing Mosaic JavaScript examples
 
-**Note:** ESM specs run in the browser JavaScript environment and have access to the full Mosaic API, unlike YAML/JSON which are declarative formats.
+**Note:** ESM specs run in the browser JavaScript environment and have access to the full Mosaic API, unlike YAML/JSON which are declarative formats. The rMosaic package automatically makes common vgplot functions (like `Param`, `vconcat`, `plot`, `voronoi`, etc.) available in the module scope, so you can use them directly without the `vg.` prefix. For functions not explicitly exposed, you can access them via the `vg` object (e.g., `vg.coordinator()`).
 
 ## Comparison of Formats
 

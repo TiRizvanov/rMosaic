@@ -321,12 +321,47 @@ HTMLWidgets.widget({
           console.log(`[mosaic][${wid}] → Parsing spec (type: ${x.specType}):`, x.spec);
           let view;
           if (x.specType === "esmText") {
-            const blob = new Blob([x.specText], { type: "application/javascript" });
+            // Wrap ESM code to make vgplot functions available
+            // Import from window.vgplot and make all functions available in module scope
+            const vgplotWrapper = `
+              // Import vgplot from window object
+              const vg = window.vgplot;
+              
+              // Make all vgplot functions available in module scope
+              // This allows ESM code to use Param, vconcat, plot, etc. directly
+              const Param = vg.Param;
+              const vconcat = vg.vconcat;
+              const hconcat = vg.hconcat;
+              const plot = vg.plot;
+              const voronoi = vg.voronoi;
+              const hull = vg.hull;
+              const delaunayMesh = vg.delaunayMesh;
+              const dot = vg.dot;
+              const frame = vg.frame;
+              const menu = vg.menu;
+              const hspace = vg.hspace;
+              const vspace = vg.vspace;
+              const width = vg.width;
+              const height = vg.height;
+              const inset = vg.inset;
+              const regressionY = vg.regressionY;
+              const raster = vg.raster;
+              const rectY = vg.rectY;
+              const from = vg.from;
+              const loadParquet = vg.loadParquet;
+              const loadCSV = vg.loadCSV;
+              const loadJSON = vg.loadJSON;
+              const loadArrow = vg.loadArrow;
+              
+              // Now execute the user's ESM code:
+              ${x.specText}
+            `;
+            const blob = new Blob([vgplotWrapper], { type: "application/javascript" });
             const url = URL.createObjectURL(blob);
             const mod = await import(url);
             view = mod.default;
             URL.revokeObjectURL(url);
-            console.log(`[mosaic][${wid}] ✓ ESM module imported.`);
+            console.log(`[mosaic][${wid}] ✓ ESM module imported with vgplot functions.`);
           } else {
             const ast = mosaicSpec.parseSpec(x.spec);
             console.log(`[mosaic][${wid}] ✓ AST generated from spec.`);
