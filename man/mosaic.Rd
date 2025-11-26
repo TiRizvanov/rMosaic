@@ -22,7 +22,7 @@ mosaic(
 
 \item{backend}{Database backend: "r" (default) for R DuckDB or "wasm" for browser WASM DuckDB.}
 
-\item{width}{CSS or pixel width (e.g. "100%", "600px", or numeric).}
+\item{width}{CSS or pixel width (e.g. "100\%", "600px", or numeric).}
 
 \item{height}{CSS or pixel height.}
 }
@@ -30,5 +30,5 @@ mosaic(
 An htmlwidget that renders the Mosaic visualization.
 }
 \description{
-Render a Mosaic visualization in Shiny
+Renders a Mosaic visualization using the provided specification and data.
 }

@@ -25,10 +25,10 @@ runMosaicApp(
 
 \item{title}{Optional page title}
 
-\item{width}{CSS or pixel width (e.g. "100%", "600px", or numeric).}
+\item{width}{CSS or pixel width (e.g. "100\%", "600px", or numeric).}
 
 \item{height}{CSS or pixel height.}
 }
 \description{
-Run a Mosaic Shiny App in the RStudio Viewer
+Launches a Shiny application displaying the Mosaic visualization.
 }

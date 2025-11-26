@@ -6,7 +6,7 @@
 \alias{rMosaic-package}
 \title{rMosaic: Mosaic Shiny Integration}
 \description{
-Embed the Mosaic framework in R, allowing users to declaratively define visualizations (via JSON/YAML specs) and render interactive Mosaic plots in Shiny. Data queries are executed in DuckDB via R, enabling scalable linked visuals. Includes Mosaic JavaScript libraries v0.21.1.
+TODO
 }
 \seealso{
 Useful links:

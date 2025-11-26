@@ -23,12 +23,12 @@ runMosaicWithExport(
 
 \item{title}{Optional page title}
 
-\item{width}{CSS or pixel width (e.g. "100%", "600px", or numeric).}
+\item{width}{CSS or pixel width (e.g. "100\%", "600px", or numeric).}
 
 \item{height}{CSS or pixel height.}
 
 \item{selection_env}{Environment to store selections in}
 }
 \description{
-Run a Mosaic Shiny App with selection export
+Launches a Shiny application that allows selecting data points and exporting them to an R environment.
 }

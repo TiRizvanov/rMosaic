@@ -8,6 +8,11 @@ renderMosaic(expr, env = parent.frame(), quoted = FALSE)
 }
 \arguments{
 \item{expr}{An expression that generates a call to \code{\link{mosaic}()}.}
+
+\item{env}{The environment in which to evaluate \code{expr}.}
+
+\item{quoted}{Is \code{expr} a quoted expression (with \code{quote()})? This
+is useful if you want to save an expression in a variable.}
 }
 \description{
 Use this in the server to render the Mosaic visualization to the output.

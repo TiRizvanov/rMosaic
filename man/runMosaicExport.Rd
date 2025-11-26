@@ -14,6 +14,21 @@ runMosaicExport(
   selection_env = .GlobalEnv
 )
 }
+\arguments{
+\item{spec}{JSON/YAML (as R list, text, or file) or ESM JS code (text or file).}
+
+\item{specType}{One of "auto" (default), "json", "yaml", or "esm".}
+
+\item{data}{Named list of data.frames to register in DuckDB.}
+
+\item{title}{Optional page title}
+
+\item{width}{CSS or pixel width (e.g. "100\%", "600px", or numeric).}
+
+\item{height}{CSS or pixel height.}
+
+\item{selection_env}{where to store extracted selections}
+}
 \description{
-Run a Mosaic app and export brush/query selections back to R
+Runs a Mosaic app and allows exporting selections to R.
 }
