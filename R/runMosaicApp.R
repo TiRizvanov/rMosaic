@@ -2,18 +2,20 @@
 
 #' Run a Mosaic Shiny App in the RStudio Viewer
 #'
+#' @description
+#' Launches a Shiny application displaying the Mosaic visualization.
+#'
 #' @inheritParams mosaic
 #' @param title   Optional page title
 #' @export
 runMosaicApp <- function(
-  spec,
-  specType = c("auto", "json", "yaml", "esm"),
-  data,
-  backend = c("r", "wasm"),
-  title = NULL,
-  width = "100%",
-  height = "600px"
-) {
+    spec,
+    specType = c("auto", "json", "yaml", "esm"),
+    data,
+    backend = c("r", "wasm"),
+    title = NULL,
+    width = "100%",
+    height = "600px") {
   specType <- match.arg(specType)
   backend <- match.arg(backend)
 

@@ -36,7 +36,4 @@ reference:
   - runMosaicWithExport
   - runMosaicExport
 
-- title: Selection Functions
-  desc: Functions for handling selections
-  contents:
-  - exportSelection
+

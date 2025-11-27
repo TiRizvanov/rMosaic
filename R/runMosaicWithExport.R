@@ -3,19 +3,21 @@ NULL
 
 #' Run a Mosaic Shiny App with selection export
 #'
+#' @description
+#' Launches a Shiny application that allows selecting data points and exporting them to an R environment.
+#'
 #' @inheritParams mosaic
 #' @param title Optional page title
 #' @param selection_env Environment to store selections in
 #' @export
 runMosaicWithExport <- function(
-  spec,
-  specType = c("auto", "json", "yaml", "esm"),
-  data,
-  title = NULL,
-  width = "100%",
-  height = "600px",
-  selection_env = .GlobalEnv
-) {
+    spec,
+    specType = c("auto", "json", "yaml", "esm"),
+    data,
+    title = NULL,
+    width = "100%",
+    height = "600px",
+    selection_env = .GlobalEnv) {
   specType <- match.arg(specType)
 
   if (

@@ -5,22 +5,24 @@ NULL
 
 #' Render a Mosaic visualization in Shiny
 #'
+#' @description
+#' Renders a Mosaic visualization using the provided specification and data.
+#'
 #' @param spec      JSON/YAML (as R list, text, or file) or ESM JS code (text or file).
 #' @param specType  One of "auto" (default), "json", "yaml", or "esm".
 #' @param data      Named list of data.frames to register in DuckDB.
 #' @param backend   Database backend: "r" (default) for R DuckDB or "wasm" for browser WASM DuckDB.
-#' @param width     CSS or pixel width (e.g. "100%", "600px", or numeric).
+#' @param width     CSS or pixel width (e.g. "100\%", "600px", or numeric).
 #' @param height    CSS or pixel height.
 #' @return An htmlwidget that renders the Mosaic visualization.
 #' @export
 mosaic <- function(
-  spec,
-  specType = c("auto", "json", "yaml", "esm"),
-  data = NULL,
-  backend = c("r", "wasm"),
-  width = NULL,
-  height = NULL
-) {
+    spec,
+    specType = c("auto", "json", "yaml", "esm"),
+    data = NULL,
+    backend = c("r", "wasm"),
+    width = NULL,
+    height = NULL) {
   specType <- match.arg(specType)
   backend <- match.arg(backend)
 

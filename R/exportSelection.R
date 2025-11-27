@@ -4,18 +4,22 @@
 NULL
 
 #' Run a Mosaic app and export brush/query selections back to R
-# ’ @inheritParams mosaic
-# ’ @param selection_env  where to store extracted selections
-# ’ @export
+#'
+#' @description
+#' Runs a Mosaic app and allows exporting selections to R.
+#'
+#' @inheritParams mosaic
+#' @param selection_env  where to store extracted selections
+#' @param title Optional page title
+#' @export
 runMosaicExport <- function(
-  spec,
-  specType = "auto",
-  data,
-  title = NULL,
-  width = "100%",
-  height = "600px",
-  selection_env = .GlobalEnv
-) {
+    spec,
+    specType = "auto",
+    data,
+    title = NULL,
+    width = "100%",
+    height = "600px",
+    selection_env = .GlobalEnv) {
   if (
     requireNamespace("rstudioapi", quietly = TRUE) &&
       rstudioapi::hasFun("viewer")
@@ -26,7 +30,7 @@ runMosaicExport <- function(
   ui <- shiny::fluidPage(
     if (!is.null(title)) shiny::titlePanel(title),
     mosaicOutput("viz", width = width, height = height),
-    shiny::actionButton("export_sel", "Import selection → R"),
+    shiny::actionButton("export_sel", "Import selection -> R"),
     shiny::verbatimTextOutput("sel_status")
   )
 
