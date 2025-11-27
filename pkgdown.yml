@@ -1,0 +1,15 @@
+pandoc: 3.1.11
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  athletes-dashboard: athletes-dashboard.html
+  dynamic-rendering: dynamic-rendering.html
+  format-esm: format-esm.html
+  format-json: format-json.html
+  gaia-stars: gaia-stars.html
+  getting-started: getting-started.html
+  taxi-crossfilter: taxi-crossfilter.html
+last_built: 2025-11-27T17:35Z
+urls:
+  reference: https://tirizvanov.github.io/rMosaic/reference
+  article: https://tirizvanov.github.io/rMosaic/articles

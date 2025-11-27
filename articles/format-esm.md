@@ -1,0 +1,121 @@
+# Using ESM Format
+
+## Introduction
+
+This vignette demonstrates how to define Mosaic visualizations using ESM
+(ECMAScript Module) format. ESM allows you to write specifications using
+JavaScript syntax with full access to Mosaic’s compositional API.
+
+## Example: Voronoi Diagram with ESM
+
+This is the same voronoi diagram, but defined using ESM (JavaScript)
+format:
+
+``` r
+library(rMosaic)
+
+# Generate synthetic penguins dataset
+set.seed(42)
+penguins_df <- data.frame(
+  bill_length = rnorm(150, mean = 40, sd = 5),
+  bill_depth  = rnorm(150, mean = 18, sd = 3),
+  species     = sample(c("Adelie", "Gentoo", "Chinstrap"), 150, replace = TRUE)
+)
+
+# Define ESM spec as raw JavaScript text
+voronoi_esm <- "
+const $mesh = Param.value(0);
+const $hull = Param.value(0);
+
+export default vconcat(
+  plot(
+    voronoi(
+      from('penguins'),
+      { x: 'bill_length', y: 'bill_depth',
+        stroke: 'white', strokeWidth: 1,
+        strokeOpacity: 0.2, fill: 'species', fillOpacity: 0.2 }
+    ),
+    hull(
+      from('penguins'),
+      { x: 'bill_length', y: 'bill_depth',
+        stroke: 'species', strokeOpacity: $hull, strokeWidth: 1.5 }
+    ),
+    delaunayMesh(
+      from('penguins'),
+      { x: 'bill_length', y: 'bill_depth', z: 'species',
+        stroke: 'species', strokeOpacity: $mesh, strokeWidth: 1 }
+    ),
+    dot(
+      from('penguins'),
+      { x: 'bill_length', y: 'bill_depth',
+        fill: 'species', r: 2 }
+    ),
+    frame(),
+    width(680),
+    height(480)
+  ),
+  hconcat(
+    menu({
+      label: 'Delaunay Mesh',
+      options: [
+        { value: 0,   label: 'Hide' },
+        { value: 0.5, label: 'Show' }
+      ],
+      as: $mesh
+    }),
+    hspace(5),
+    menu({
+      label: 'Convex Hull',
+      options: [
+        { value: 0, label: 'Hide' },
+        { value: 1, label: 'Show' }
+      ],
+      as: $hull
+    })
+  )
+);
+"
+
+# Run the application with ESM spec
+runMosaicApp(
+  spec     = voronoi_esm,
+  specType = "esm",
+  data     = list(penguins = penguins_df),
+  title    = "Voronoi Diagram (ESM)"
+)
+```
+
+## Advantages of ESM Format
+
+- **Compositional API**: Use functional composition for complex
+  visualizations
+- **Full JavaScript**: Access to JavaScript’s expressiveness and control
+  flow
+- **Direct Mosaic API**: Use Mosaic’s JavaScript API directly
+- **Dynamic Logic**: Easier to add conditional logic or computations
+
+## When to Use ESM
+
+- Complex visualizations requiring programmatic composition
+- When you’re familiar with Mosaic’s JavaScript API
+- Need advanced control flow or conditional rendering
+- Working from existing Mosaic JavaScript examples
+
+**Note:** ESM specs run in the browser JavaScript environment and have
+access to the full Mosaic API, unlike YAML/JSON which are declarative
+formats. The rMosaic package automatically makes common vgplot functions
+(like `Param`, `vconcat`, `plot`, `voronoi`, etc.) available in the
+module scope, so you can use them directly without the `vg.` prefix. For
+functions not explicitly exposed, you can access them via the `vg`
+object (e.g., `vg.coordinator()`).
+
+## Comparison of Formats
+
+| Format | Best For             | Complexity  |
+|--------|----------------------|-------------|
+| YAML   | Simple specs in R    | Low         |
+| JSON   | External specs, APIs | Low         |
+| ESM    | Advanced features    | Medium-High |
+
+For most use cases, YAML format (R lists) is recommended for its
+simplicity and R integration.
