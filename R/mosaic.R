@@ -18,6 +18,7 @@ mosaic <- function(
   specType = c("auto", "json", "yaml", "esm"),
   data = NULL,
   backend = c("r", "wasm"),
+  extensions = NULL,
   width = NULL,
   height = NULL
 ) {
@@ -84,6 +85,10 @@ mosaic <- function(
 
   # 3) Embed width/height into spec_list
   if (!is.null(spec_list)) {
+    if (!is.null(extensions)) {
+      spec_list$config <- c(spec_list$config, list(extensions = extensions))
+    }
+
     strip_px <- function(x) {
       if (is.numeric(x)) {
         return(as.integer(x))

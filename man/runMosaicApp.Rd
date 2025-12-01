@@ -9,6 +9,7 @@ runMosaicApp(
   specType = c("auto", "json", "yaml", "esm"),
   data,
   backend = c("r", "wasm"),
+  extensions = NULL,
   title = NULL,
   width = "100\%",
   height = "600px"

@@ -9,6 +9,7 @@ mosaic(
   specType = c("auto", "json", "yaml", "esm"),
   data = NULL,
   backend = c("r", "wasm"),
+  extensions = NULL,
   width = NULL,
   height = NULL
 )

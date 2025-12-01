@@ -186,6 +186,82 @@ runMosaicApp(
 )
 ```
 
+### ggmosaic version (shorter)
+
+Below is the same example using the ggplot-style DSL. It’s shorter because the DSL handles params and layout wiring for you.
+
+```{r gaia_catalog_gg}
+library(rMosaic)
+
+# SQL with projection (same as spec above)
+gaia_query <- paste(
+  "-- compute u and v with natural earth projection",
+  "WITH prep AS (",
+  "  SELECT",
+  "    radians((-l + 540) % 360 - 180) AS lambda,",
+  "    radians(b) AS phi,",
+  "    asin(sqrt(3)/2 * sin(phi)) AS t,",
+  "    t^2 AS t2,",
+  "    t2^3 AS t6,",
+  "    *",
+  "  FROM 'https://idl.uw.edu/mosaic-datasets/data/gaia-5m.parquet'",
+  "  WHERE parallax BETWEEN -5 AND 20",
+  "    AND phot_g_mean_mag IS NOT NULL",
+  "    AND bp_rp IS NOT NULL",
+  ")",
+  "SELECT",
+  "  (1.340264 * \"lambda\" * cos(t)) /",
+  "    (sqrt(3)/2 * (1.340264",
+  "      + (-0.081106 * 3 * t2)",
+  "      + (t6 * (0.000893 * 7 + 0.003796 * 9 * t2)))) AS u,",
+  "  t * (1.340264",
+  "      + (-0.081106 * t2)",
+  "      + (t6 * (0.000893 + 0.003796 * t2))) AS v,",
+  "  * EXCLUDE('t','t2','t6')",
+  "FROM prep",
+  sep = "\n"
+)
+
+sel <- brush_selection(type = "crossfilter")
+
+sky <- ggmosaic(list(gaia = gaia_query), aes(x = u, y = v, fill = density)) +
+  geom_raster(bandwidth = 0, filter = sel, pad = 0) +
+  brush_xy(sel) +
+  plot_size(440, 250) +
+  plot_margins(0) +
+  color_scale("sqrt") +
+  color_scheme("viridis")
+
+mag_hist <- ggmosaic(list(gaia = gaia_query), aes(x = phot_g_mean_mag)) +
+  geom_histogram(filter = sel, inset = 0.5) +
+  brush_x(sel) +
+  plot_size(220, 120) +
+  plot_margins(0)
+
+parallax_hist <- ggmosaic(list(gaia = gaia_query), aes(x = parallax)) +
+  geom_histogram(filter = sel, inset = 0.5) +
+  brush_x(sel) +
+  plot_size(220, 120) +
+  plot_margins(0)
+
+hr <- ggmosaic(list(gaia = gaia_query), aes(x = bp_rp, y = phot_g_mean_mag, fill = density)) +
+  geom_raster(bandwidth = 0, filter = sel, pad = 0) +
+  brush_xy(sel) +
+  plot_size(230, 370) +
+  plot_margins(0) +
+  color_scale("sqrt") +
+  color_scheme("viridis")
+
+hconcat(
+  vconcat(
+    sky,
+    hconcat(mag_hist, parallax_hist)
+  ),
+  hspace(10),
+  hr
+) %>% render(backend = "wasm")
+```
+
 ## Key Features
 
 ### Natural Earth Projection
