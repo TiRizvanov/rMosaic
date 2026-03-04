@@ -250,8 +250,21 @@ HTMLWidgets.widget({
                   console.log(`[mosaic][${wid}] ✓ Created and populated table '${tableName}' in WASM DuckDB`);
 
                   // Verify table creation (optional debugging)
-                  const result = await coordinator.query({ sql: `SELECT COUNT(*) FROM ${tableName}`, type: 'json' });
-                  console.log(`[mosaic][${wid}] Table '${tableName}' has ${result[0]['count(*)']} rows.`);
+                  const result = await coordinator.query(`SELECT COUNT(*) FROM ${tableName}`, { type: 'json' });
+                  let rowCount = 'unknown';
+                  if (Array.isArray(result) && result.length > 0) {
+                    rowCount = result[0]['count(*)'] ?? result[0].count ?? rowCount;
+                  } else if (result && typeof result === 'object') {
+                    if (Array.isArray(result.data) && result.data.length > 0) {
+                      rowCount = result.data[0]['count(*)'] ?? result.data[0].count ?? rowCount;
+                    } else if (result.columns && typeof result.columns === 'object') {
+                      const countColumn = result.columns['count(*)'] ?? result.columns.count;
+                      if (Array.isArray(countColumn) && countColumn.length > 0) {
+                        rowCount = countColumn[0];
+                      }
+                    }
+                  }
+                  console.log(`[mosaic][${wid}] Table '${tableName}' has ${rowCount} rows.`);
                 }
               } catch (e) {
                 console.error(`[mosaic][${wid}] Error loading table '${tableName}' into WASM:`, e);

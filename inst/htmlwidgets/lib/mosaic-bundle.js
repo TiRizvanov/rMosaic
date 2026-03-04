@@ -49469,6 +49469,236 @@ ${extraStyle}`
 
   // packages/vgplot/plot/src/marks/GeoMark.js
   var DEFAULT_GEOMETRY_COLUMN = "geom";
+  var GEOMARK_MAX_WKB_DEPTH = 32;
+  var GEOMARK_MAX_CHILD_COUNT = 1e4;
+  var GEOMARK_MAX_RING_COUNT = 1e4;
+  var GEOMARK_MAX_POINTS = 2e6;
+  function geomarkParseGeometryValue(value) {
+    if (value == null) return value;
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (!trimmed) return null;
+      const first = trimmed[0];
+      if (first === "{" || first === "[") {
+        return JSON.parse(trimmed);
+      }
+      const bytes = geomarkHexToBytes(trimmed);
+      if (bytes) {
+        const geometry = geomarkParseWkb(bytes);
+        if (geometry) return geometry;
+      }
+      return JSON.parse(trimmed);
+    }
+    const bytes = geomarkToBytes(value);
+    if (bytes) {
+      const geometry = geomarkParseWkb(bytes);
+      if (geometry) return geometry;
+    }
+    return value;
+  }
+  function geomarkHexToBytes(text) {
+    const hex = text.replace(/^\x/i, "").trim();
+    if (!hex || hex.length % 2 !== 0 || !/^[0-9a-fA-F]+$/.test(hex)) {
+      return null;
+    }
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+      bytes[i / 2] = Number.parseInt(hex.slice(i, i + 2), 16);
+    }
+    return bytes;
+  }
+  function geomarkToBytes(value) {
+    if (value == null) return null;
+    if (value instanceof Uint8Array) return value;
+    if (value instanceof ArrayBuffer) return new Uint8Array(value);
+    if (ArrayBuffer.isView(value)) {
+      return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+    }
+    if (Array.isArray(value) && value.every((d) => Number.isInteger(d) && d >= 0 && d <= 255)) {
+      return Uint8Array.from(value);
+    }
+    return null;
+  }
+  function geomarkInspectWkbHeader(bytes, offset = 0) {
+    if (offset < 0 || offset + 5 > bytes.length) return null;
+    const view = new DataView(bytes.buffer, bytes.byteOffset + offset, bytes.byteLength - offset);
+    const byteOrder = view.getUint8(0);
+    if (byteOrder !== 0 && byteOrder !== 1) return null;
+    const littleEndian = byteOrder === 1;
+    const rawType = view.getUint32(1, littleEndian);
+    const baseType = geomarkGetWkbBaseType(rawType);
+    if (baseType < 1 || baseType > 7) return null;
+    return { offset, rawType, baseType };
+  }
+  function geomarkFindWkbCandidate(bytes, maxOffset = 64) {
+    const direct = geomarkInspectWkbHeader(bytes, 0);
+    if (direct) return direct;
+    const limit = Math.min(maxOffset, Math.max(0, bytes.length - 5));
+    for (let offset = 1; offset <= limit; ++offset) {
+      const candidate = geomarkInspectWkbHeader(bytes, offset);
+      if (candidate) return candidate;
+    }
+    return null;
+  }
+  function geomarkParseWkb(bytes) {
+    const candidate = geomarkFindWkbCandidate(bytes);
+    if (!candidate) return null;
+    const view = new DataView(bytes.buffer, bytes.byteOffset + candidate.offset, bytes.byteLength - candidate.offset);
+    const state = { offset: 0, pointsRead: 0 };
+    return geomarkReadWkbGeometry(view, state, 0);
+  }
+  function geomarkReadWkbGeometry(view, state, depth) {
+    if (depth > GEOMARK_MAX_WKB_DEPTH || !geomarkCanRead(view, state, 5)) return null;
+    const byteOrder = view.getUint8(state.offset);
+    if (byteOrder !== 0 && byteOrder !== 1) return null;
+    const littleEndian = byteOrder === 1;
+    state.offset += 1;
+    const rawType = geomarkReadUint32(view, state, littleEndian);
+    if (!Number.isFinite(rawType)) return null;
+    if ((rawType & 0x20000000) !== 0) {
+      if (!geomarkCanRead(view, state, 4)) return null;
+      state.offset += 4;
+    }
+    const type = geomarkGetWkbBaseType(rawType);
+    const dimensions = geomarkGetWkbDimensions(rawType);
+    if (dimensions < 2 || dimensions > 4) return null;
+    switch (type) {
+      case 1: {
+        const coords = geomarkReadPoint(view, state, littleEndian, dimensions);
+        return coords ? { type: "Point", coordinates: coords } : null;
+      }
+      case 2: {
+        const coords = geomarkReadLineString(view, state, littleEndian, dimensions);
+        return coords ? { type: "LineString", coordinates: coords } : null;
+      }
+      case 3: {
+        const coords = geomarkReadPolygon(view, state, littleEndian, dimensions);
+        return coords ? { type: "Polygon", coordinates: coords } : null;
+      }
+      case 4: {
+        const count = geomarkReadCount(view, state, littleEndian);
+        if (count == null) return null;
+        const coords = [];
+        for (let i = 0; i < count; ++i) {
+          const geom = geomarkReadWkbGeometry(view, state, depth + 1);
+          if (!geom || geom.type !== "Point") return null;
+          coords.push(geom.coordinates);
+        }
+        return { type: "MultiPoint", coordinates: coords };
+      }
+      case 5: {
+        const count = geomarkReadCount(view, state, littleEndian);
+        if (count == null) return null;
+        const coords = [];
+        for (let i = 0; i < count; ++i) {
+          const geom = geomarkReadWkbGeometry(view, state, depth + 1);
+          if (!geom || geom.type !== "LineString") return null;
+          coords.push(geom.coordinates);
+        }
+        return { type: "MultiLineString", coordinates: coords };
+      }
+      case 6: {
+        const count = geomarkReadCount(view, state, littleEndian);
+        if (count == null) return null;
+        const coords = [];
+        for (let i = 0; i < count; ++i) {
+          const geom = geomarkReadWkbGeometry(view, state, depth + 1);
+          if (!geom || geom.type !== "Polygon") return null;
+          coords.push(geom.coordinates);
+        }
+        return { type: "MultiPolygon", coordinates: coords };
+      }
+      case 7: {
+        const count = geomarkReadCount(view, state, littleEndian);
+        if (count == null) return null;
+        const geometries = [];
+        for (let i = 0; i < count; ++i) {
+          const geom = geomarkReadWkbGeometry(view, state, depth + 1);
+          if (!geom) return null;
+          geometries.push(geom);
+        }
+        return { type: "GeometryCollection", geometries };
+      }
+      default:
+        return null;
+    }
+  }
+  function geomarkReadCount(view, state, littleEndian) {
+    if (!geomarkCanRead(view, state, 4)) return null;
+    const count = geomarkReadUint32(view, state, littleEndian);
+    if (!Number.isFinite(count) || count > GEOMARK_MAX_CHILD_COUNT) return null;
+    return count;
+  }
+  function geomarkReadPoint(view, state, littleEndian, dimensions) {
+    const x = geomarkReadFloat64(view, state, littleEndian);
+    const y = geomarkReadFloat64(view, state, littleEndian);
+    for (let i = 2; i < dimensions; ++i) geomarkReadFloat64(view, state, littleEndian);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    state.pointsRead += 1;
+    if (state.pointsRead > GEOMARK_MAX_POINTS) return null;
+    return [x, y];
+  }
+  function geomarkReadLineString(view, state, littleEndian, dimensions) {
+    const count = geomarkReadCount(view, state, littleEndian);
+    if (count == null) return null;
+    const coords = [];
+    for (let i = 0; i < count; ++i) {
+      const point = geomarkReadPoint(view, state, littleEndian, dimensions);
+      if (!point) return null;
+      coords.push(point);
+    }
+    return coords;
+  }
+  function geomarkReadPolygon(view, state, littleEndian, dimensions) {
+    if (!geomarkCanRead(view, state, 4)) return null;
+    const ringCount = geomarkReadUint32(view, state, littleEndian);
+    if (!Number.isFinite(ringCount) || ringCount > GEOMARK_MAX_RING_COUNT) return null;
+    const rings = [];
+    for (let i = 0; i < ringCount; ++i) {
+      const ring = geomarkReadLineString(view, state, littleEndian, dimensions);
+      if (!ring || ring.length < 3) return null;
+      rings.push(ring);
+    }
+    return rings;
+  }
+  function geomarkGetWkbBaseType(rawType) {
+    const withoutFlags = rawType & 268435455;
+    if (withoutFlags >= 3e3) return withoutFlags - 3e3;
+    if (withoutFlags >= 2e3) return withoutFlags - 2e3;
+    if (withoutFlags >= 1e3) return withoutFlags - 1e3;
+    return withoutFlags;
+  }
+  function geomarkGetWkbDimensions(rawType) {
+    const withoutFlags = rawType & 268435455;
+    let dimensions = 2;
+    if (withoutFlags >= 3e3) dimensions = 4;
+    else if (withoutFlags >= 2e3 || withoutFlags >= 1e3) dimensions = 3;
+    if ((rawType & 2147483648) !== 0 || (rawType & 1073741824) !== 0) {
+      dimensions = Math.max(dimensions, 3);
+    }
+    return dimensions;
+  }
+  function geomarkCanRead(view, state, bytes) {
+    return state.offset + bytes <= view.byteLength;
+  }
+  function geomarkReadUint32(view, state, littleEndian) {
+    if (!geomarkCanRead(view, state, 4)) {
+      state.offset = view.byteLength;
+      return NaN;
+    }
+    const value = view.getUint32(state.offset, littleEndian);
+    state.offset += 4;
+    return value;
+  }
+  function geomarkReadFloat64(view, state, littleEndian) {
+    if (!geomarkCanRead(view, state, 8)) {
+      state.offset = view.byteLength;
+      return NaN;
+    }
+    const value = view.getFloat64(state.offset, littleEndian);
+    state.offset += 8;
+    return value;
+  }
   var GeoMark = class extends Mark2 {
     constructor(source, encodings = {}, reqs) {
       if (!isDataArray(source) && !encodings?.geometry) {
@@ -49481,8 +49711,9 @@ ${extraStyle}`
       const geom = this.channelField("geometry")?.as;
       if (geom) {
         const { columns } = this.data;
-        if (typeof columns[geom][0] === "string") {
-          columns[geom] = columns[geom].map((s2) => JSON.parse(s2));
+        const values = columns[geom];
+        if (Array.isArray(values) && values.length) {
+          columns[geom] = values.map((value) => geomarkParseGeometryValue(value));
         }
       }
       return this;
