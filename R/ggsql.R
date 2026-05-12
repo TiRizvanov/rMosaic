@@ -48,7 +48,23 @@ ggsql <- function(sql, data = NULL,
   source_name <- .ggsql_mosaic_source(ir)
 
   plot_items <- list()
+  params <- list()
+  interactor_counter <- 0L
   for (layer in ir$layers) {
+    if (.ggsql_mosaic_is_interactor(layer)) {
+      interactor_counter <- interactor_counter + 1L
+      sel_name <- layer$settings[["as"]] %||%
+        sprintf("brush_%d", interactor_counter)
+      sel_type <- .ggsql_mosaic_interactor_type(layer$type)
+      plot_items <- c(plot_items, list(list(
+        select = sel_type,
+        as     = paste0("$", sel_name)
+      )))
+      if (is.null(params[[sel_name]])) {
+        params[[sel_name]] <- list(select = sel_type)
+      }
+      next
+    }
     plot_items <- c(
       plot_items,
       list(.ggsql_mosaic_layer(layer, ir, source_name))
@@ -56,6 +72,7 @@ ggsql <- function(sql, data = NULL,
   }
 
   spec <- list(plot = plot_items)
+  if (length(params)) spec$params <- params
 
   # Top-level data section: if the user supplied a base SELECT, expose it
   # as a named source so marks can FROM it. Otherwise we rely on the
@@ -171,6 +188,31 @@ ggsql <- function(sql, data = NULL,
   )
 }
 
+.ggsql_mosaic_is_interactor <- function(layer) {
+  identical(layer$kind, "draw") &&
+    tolower(layer$type) %in%
+      c("intervalx", "interval_x",
+        "intervaly", "interval_y",
+        "intervalxy", "interval_xy",
+        "brush_x", "brush_y", "brush_xy")
+}
+
+.ggsql_mosaic_interactor_type <- function(type) {
+  switch(
+    tolower(type),
+    "intervalx"   = ,
+    "interval_x"  = ,
+    "brush_x"     = "intervalX",
+    "intervaly"   = ,
+    "interval_y"  = ,
+    "brush_y"     = "intervalY",
+    "intervalxy"  = ,
+    "interval_xy" = ,
+    "brush_xy"    = "intervalXY",
+    stop(sprintf("Unknown interactor type: %s", type))
+  )
+}
+
 .ggsql_mosaic_layer <- function(layer, ir, source_name) {
   if (identical(layer$kind, "place")) {
     return(.ggsql_mosaic_place(layer))
@@ -178,7 +220,11 @@ ggsql <- function(sql, data = NULL,
   aes_map <- ir$aesthetics
   settings <- layer$settings
   type <- layer$type
-  out <- list(data = list(from = source_name))
+  data_spec <- list(from = source_name)
+  if (!is.null(settings[["filterby"]])) {
+    data_spec$filterBy <- paste0("$", settings[["filterby"]])
+  }
+  out <- list(data = data_spec)
 
   if (type == "point" || type == "dot") {
     out$mark <- "dot"
