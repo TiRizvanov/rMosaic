@@ -11,6 +11,7 @@ with hover highlighting
 ## Example: Olympic Athletes Dashboard
 
 ``` r
+
 library(rMosaic)
 library(DBI)
 library(duckdb)

@@ -27,6 +27,7 @@ bundled for use in R and Shiny applications.
 ## Installation
 
 ``` r
+
 # If you are in the package directory:
 install.packages("rMosaic")
 
@@ -40,6 +41,7 @@ remotes::install_github("TiRizvanov/rMosaic")
 ## Quick Start
 
 ``` r
+
 library(rMosaic)
 
 # Prepare a small data.frame
@@ -106,6 +108,7 @@ Pan/zoom with on-the-fly binning
 Use in any Shiny app:
 
 ``` r
+
 ui <- fluidPage(
   mosaicOutput("vis", width="100%", height="600px")
 )
@@ -132,6 +135,7 @@ If you need to pull back brush selections into R, use the
 helper:
 
 ``` r
+
 runMosaicExport(
   spec       = spec_json,
   specType   = "json",

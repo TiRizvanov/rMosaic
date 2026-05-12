@@ -11,6 +11,7 @@ interaction even with large datasets
 ## Example: Dynamic Density Raster
 
 ``` r
+
 library(rMosaic)
 
 # Generate mock spatial data
@@ -111,6 +112,7 @@ static regardless of view
 You can expose the `pixelSize` parameter as a user control:
 
 ``` r
+
 spec_with_slider <- spec
 spec_with_slider$vconcat <- list(
   spec_with_slider$plot,

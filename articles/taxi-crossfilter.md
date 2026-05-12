@@ -10,6 +10,7 @@ Histogram of pickup times - Interactive brushing across all views
 ## Example: NYC Taxi Rides with Crossfilter
 
 ``` r
+
 library(rMosaic)
 
 # Define the spec

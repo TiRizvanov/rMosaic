@@ -14,6 +14,7 @@ to load).
 ## Example: Gaia Star Catalog
 
 ``` r
+
 library(rMosaic)
 library(DBI)
 library(duckdb)

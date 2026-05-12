@@ -10,6 +10,7 @@ demonstrates basic usage with a working example.
 ## Installation
 
 ``` r
+
 # Install from GitHub
 remotes::install_github("YourGitHub/rMosaic")
 ```
@@ -22,6 +23,7 @@ by species - Convex hulls around each species group - Delaunay mesh
 connecting points - Interactive menus to toggle hull and mesh visibility
 
 ``` r
+
 library(rMosaic)
 
 # Generate synthetic penguins dataset

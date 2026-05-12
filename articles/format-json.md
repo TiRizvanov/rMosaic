@@ -12,6 +12,7 @@ This is the same voronoi diagram from the getting-started vignette, but
 defined using JSON format:
 
 ``` r
+
 library(rMosaic)
 
 # Generate synthetic penguins dataset
@@ -117,6 +118,7 @@ runMosaicApp(
 You can also load JSON from a file:
 
 ``` r
+
 # Save spec to file
 writeLines(voronoi_json, "voronoi_spec.json")
 

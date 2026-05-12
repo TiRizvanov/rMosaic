@@ -12,6 +12,7 @@ This is the same voronoi diagram, but defined using ESM (JavaScript)
 format:
 
 ``` r
+
 library(rMosaic)
 
 # Generate synthetic penguins dataset
