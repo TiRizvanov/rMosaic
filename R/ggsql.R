@@ -44,6 +44,12 @@ ggsql <- function(sql, data = NULL,
 # Compile IR -> Mosaic spec list ----------------------------------------------
 
 .ggsql_compile_mosaic <- function(ir, width = NULL, height = NULL) {
+  # Mosaic's SQL builder treats `"col.with.dot"` as `"col"."with"."dot"`,
+  # so any aesthetic referring to a dotted column has to be aliased
+  # before it reaches a mark like regressionY. Inject a renaming
+  # subquery and rewrite the aesthetics to use the safe names.
+  ir <- .ggsql_mosaic_alias_dotted(ir)
+
   source_name <- .ggsql_mosaic_source(ir)
 
   plot_items <- list()
@@ -107,6 +113,43 @@ ggsql <- function(sql, data = NULL,
   if (is.null(spec$height)) spec$height <- 400
 
   spec
+}
+
+.ggsql_mosaic_alias_dotted <- function(ir) {
+  vals <- unique(unlist(ir$aesthetics, use.names = FALSE))
+  dotted <- vals[vapply(vals, function(v) {
+    is.character(v) && length(v) == 1L && grepl(".", v, fixed = TRUE)
+  }, logical(1))]
+  if (!length(dotted)) return(ir)
+
+  alias_map <- setNames(
+    gsub("[^A-Za-z0-9_]", "_", dotted),
+    dotted
+  )
+
+  for (k in names(ir$aesthetics)) {
+    v <- ir$aesthetics[[k]]
+    if (is.character(v) && length(v) == 1L && v %in% names(alias_map)) {
+      ir$aesthetics[[k]] <- unname(alias_map[[v]])
+    }
+  }
+
+  aliases <- vapply(names(alias_map), function(orig) {
+    sprintf('"%s" AS "%s"', orig, alias_map[[orig]])
+  }, character(1))
+
+  source_expr <- if (!is.null(ir$base_sql)) {
+    ir$base_sql
+  } else {
+    sprintf("SELECT * FROM %s", ir$from)
+  }
+  ir$base_sql <- sprintf(
+    "SELECT *, %s FROM (%s) AS raw_src",
+    paste(aliases, collapse = ", "),
+    source_expr
+  )
+  ir$from <- NULL
+  ir
 }
 
 .ggsql_mosaic_source <- function(ir) {
