@@ -64,11 +64,18 @@ ggsql <- function(sql, data = NULL,
     spec$data[[source_name]] <- ir$base_sql
   }
 
-  # Labels
-  if (!is.null(ir$labels$title)) spec$title <- ir$labels$title
-  if (!is.null(ir$labels$subtitle)) spec$subtitle <- ir$labels$subtitle
-  if (!is.null(ir$labels$x)) spec$xLabel <- ir$labels$x
-  if (!is.null(ir$labels$y)) spec$yLabel <- ir$labels$y
+  # Labels. Mosaic only supports per-axis labels (xLabel/yLabel) at the
+  # spec root; there is no native plot-level title/subtitle, so we skip
+  # those with a one-time message instead of letting Mosaic reject the
+  # whole spec.
+  if (!is.null(ir$labels[["title"]]) || !is.null(ir$labels[["subtitle"]])) {
+    message(
+      "Mosaic has no native plot title/subtitle; ignoring LABEL title/subtitle. ",
+      "Compose with vconcat or use the rDeckgl backend if you need a heading."
+    )
+  }
+  if (!is.null(ir$labels[["x"]])) spec$xLabel <- ir$labels[["x"]]
+  if (!is.null(ir$labels[["y"]])) spec$yLabel <- ir$labels[["y"]]
 
   # Scales: SCALE fill TO accent  =>  colorScheme: accent.
   # SCALE x TO log => xScale: log. Anything that doesn't map cleanly is

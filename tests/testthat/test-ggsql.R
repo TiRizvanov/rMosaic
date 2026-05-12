@@ -80,12 +80,15 @@ test_that("SCALE fill TO accent sets colorScheme", {
   expect_equal(spec$colorScheme, "accent")
 })
 
-test_that("LABEL title/x/y populate top-level keys", {
+test_that("LABEL x/y populate top-level keys; title emits a message and is skipped", {
   ir <- rMosaic:::.parse_ggsql(
     "VISUALIZE x AS x, y AS y FROM t DRAW point LABEL title => 'T', x => 'XL', y => 'YL'"
   )
-  spec <- rMosaic:::.ggsql_compile_mosaic(ir)
-  expect_equal(spec$title, "T")
+  expect_message(
+    spec <- rMosaic:::.ggsql_compile_mosaic(ir),
+    "Mosaic has no native plot title"
+  )
+  expect_null(spec$title)
   expect_equal(spec$xLabel, "XL")
   expect_equal(spec$yLabel, "YL")
 })
