@@ -56,12 +56,16 @@ ggsql <- function(sql, data = NULL,
       sel_name <- layer$settings[["as"]] %||%
         sprintf("brush_%d", interactor_counter)
       sel_type <- .ggsql_mosaic_interactor_type(layer$type)
+      # Param type is the Selection kind (intersect/crossfilter/union/single),
+      # NOT the interactor kind. Default to intersect for an in-plot brush;
+      # override with SETTING type => 'crossfilter' for linked-view filtering.
+      param_type <- layer$settings[["type"]] %||% "intersect"
       plot_items <- c(plot_items, list(list(
         select = sel_type,
         as     = paste0("$", sel_name)
       )))
       if (is.null(params[[sel_name]])) {
-        params[[sel_name]] <- list(select = sel_type)
+        params[[sel_name]] <- list(select = param_type)
       }
       next
     }

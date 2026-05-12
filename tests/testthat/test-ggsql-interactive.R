@@ -6,7 +6,7 @@ test_that("DRAW intervalxy compiles to a Mosaic interactor + auto-named param", 
   expect_length(spec$plot, 2L)
   expect_equal(spec$plot[[2]]$select, "intervalXY")
   expect_equal(spec$plot[[2]]$as, "$brush_1")
-  expect_equal(spec$params$brush_1$select, "intervalXY")
+  expect_equal(spec$params$brush_1$select, "intersect")
 })
 
 test_that("SETTING as => 'name' on interactor sets the param key", {
@@ -16,7 +16,15 @@ test_that("SETTING as => 'name' on interactor sets the param key", {
   spec <- rMosaic:::.ggsql_compile_mosaic(ir)
   expect_equal(spec$plot[[2]]$select, "intervalX")
   expect_equal(spec$plot[[2]]$as, "$mybrush")
-  expect_equal(spec$params$mybrush$select, "intervalX")
+  expect_equal(spec$params$mybrush$select, "intersect")
+})
+
+test_that("SETTING type => 'crossfilter' overrides the param selection kind", {
+  ir <- rMosaic:::.parse_ggsql(
+    "VISUALIZE x AS x, y AS y FROM t DRAW point DRAW intervalxy SETTING type => 'crossfilter'"
+  )
+  spec <- rMosaic:::.ggsql_compile_mosaic(ir)
+  expect_equal(spec$params$brush_1$select, "crossfilter")
 })
 
 test_that("SETTING filterby => 'name' adds filterBy to a layer", {
