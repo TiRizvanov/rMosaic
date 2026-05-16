@@ -6,7 +6,7 @@
 \alias{rMosaic-package}
 \title{rMosaic: Mosaic Shiny Integration}
 \description{
-TODO
+Provides R bindings for Mosaic, a declarative grammar for linked, data-driven visualizations backed by DuckDB. The package supplies htmlwidgets and Shiny helpers for rendering Mosaic specifications from R, including optional browser-side DuckDB-WASM execution and selection export helpers for exploratory workflows.
 }
 \seealso{
 Useful links:

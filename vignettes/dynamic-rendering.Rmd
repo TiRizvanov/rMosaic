@@ -29,7 +29,7 @@ library(rMosaic)
 
 # Generate mock spatial data
 set.seed(42)
-n  <- 10000
+n  <- 500000
 df <- data.frame(
   x         = runif(n, 0, 100),
   y         = runif(n, 0, 100),
@@ -69,7 +69,8 @@ spec <- list(
 runMosaicApp(
   spec  = spec,
   data  = list(spatial = df),
-  title = "Dynamic Raster Demo"
+  title = "Dynamic Raster Demo",
+  backend  = "wasm"
 )
 ```
 
