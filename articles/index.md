@@ -14,5 +14,7 @@
   Catalog](https://tirizvanov.github.io/rMosaic/articles/gaia-stars.md):
 - [Getting Started with
   rMosaic](https://tirizvanov.github.io/rMosaic/articles/getting-started.md):
+- [Protein Design
+  Explorer](https://tirizvanov.github.io/rMosaic/articles/protein-design-explorer.md):
 - [NYC Taxi
   Crossfilter](https://tirizvanov.github.io/rMosaic/articles/taxi-crossfilter.md):

@@ -99,7 +99,9 @@ Started**:
 Crossfilter**: Multi-view dashboard with 1M+ records - **Olympic
 Athletes**: Interactive dashboard with tables and selections - **Gaia
 Star Catalog**: Astronomical data with 5M stars - **Dynamic Rendering**:
-Pan/zoom with on-the-fly binning
+Pan/zoom with on-the-fly binning - **Protein Design Explorer**: Linked
+filters, marginal histograms, raster plot, and table for protein design
+metrics
 
 ------------------------------------------------------------------------
 
@@ -220,5 +222,7 @@ Shiny helper applications
   Catalog](https://tirizvanov.github.io/rMosaic/articles/gaia-stars.md):
 - [Getting Started with
   rMosaic](https://tirizvanov.github.io/rMosaic/articles/getting-started.md):
+- [Protein Design
+  Explorer](https://tirizvanov.github.io/rMosaic/articles/protein-design-explorer.md):
 - [NYC Taxi
   Crossfilter](https://tirizvanov.github.io/rMosaic/articles/taxi-crossfilter.md):

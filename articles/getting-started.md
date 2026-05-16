@@ -3,9 +3,9 @@
 ## Introduction
 
 **rMosaic** provides R bindings for [Mosaic
-0.21.1](https://idl.cs.washington.edu/mosaic/), a framework for
-declarative, interactive, and scalable visualizations. This vignette
-demonstrates basic usage with a working example.
+0.21.1](https://idl.uw.edu/mosaic/), a framework for declarative,
+interactive, and scalable visualizations. This vignette demonstrates
+basic usage with a working example.
 
 ## Installation
 
@@ -142,5 +142,5 @@ selections - **gaia-stars.Rmd**: Large-scale astronomical data
 visualization - **dynamic-rendering.Rmd**: Dynamic pan/zoom with
 on-the-fly binning
 
-Check the [Mosaic documentation](https://idl.cs.washington.edu/mosaic/)
-for all available marks and interactions.
+Check the [Mosaic documentation](https://idl.uw.edu/mosaic/) for all
+available marks and interactions.

@@ -99,7 +99,9 @@ Started**:
 Crossfilter**: Multi-view dashboard with 1M+ records - **Olympic
 Athletes**: Interactive dashboard with tables and selections - **Gaia
 Star Catalog**: Astronomical data with 5M stars - **Dynamic Rendering**:
-Pan/zoom with on-the-fly binning
+Pan/zoom with on-the-fly binning - **Protein Design Explorer**: Linked
+filters, marginal histograms, raster plot, and table for protein design
+metrics
 
 ------------------------------------------------------------------------
 
