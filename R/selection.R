@@ -5,6 +5,8 @@
 #' @param df data.frame to store
 #' @param env environment to store the selection in
 #' @return Name of the variable created
+#' @keywords internal
+#' @noRd
 store_mosaic_selection <- function(df, env = .GlobalEnv) {
   if (!exists(".mosaic_sel_counter", envir = env)) {
     assign(".mosaic_sel_counter", 0, envir = env)

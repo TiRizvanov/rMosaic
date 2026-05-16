@@ -12,6 +12,7 @@ Provides R bindings for Mosaic, a declarative grammar for linked, data-driven vi
 Useful links:
 \itemize{
   \item \url{https://github.com/TiRizvanov/rMosaic}
+  \item \url{https://tirizvanov.github.io/rMosaic/}
   \item Report bugs at \url{https://github.com/TiRizvanov/rMosaic/issues}
 }
 
