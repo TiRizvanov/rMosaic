@@ -33,6 +33,10 @@ function convertRowOrientedToColumnOriented(rows) {
   return columns;
 }
 
+function canDecodeArrowIPC() {
+  return window.flechette && typeof window.flechette.tableFromIPC === 'function';
+}
+
 // Helper function to format values for SQL
 function formatSQLValue(value) {
   if (value === null || value === undefined) {
@@ -85,7 +89,7 @@ HTMLWidgets.widget({
         console.log(`[mosaic][${wid}] Handler already registered.`);
         return;
       }
-      Shiny.addCustomMessageHandler(`${wid}_mosaic_response`, message => {
+      Shiny.addCustomMessageHandler(`${wid}_mosaic_response`, async message => {
         console.log(`[mosaic][${wid}] ← shinyConnector received response:`, message);
         const cbEntry = pending[message.request];
         if (!cbEntry) {
@@ -105,11 +109,11 @@ HTMLWidgets.widget({
               console.log(`[mosaic][${wid}] → processing 'arrow' type response for request ${message.request}. Data type from Shiny: ${typeof message.data}`);
               if (typeof message.data === 'string') {
                 const ipcBytes = base64ToUint8Array(message.data);
-                if (window.flechette && typeof window.flechette.fromIPC === 'function') {
-                  resolvedData = window.flechette.fromIPC(ipcBytes);
-                  console.log(`[mosaic][${wid}] ✓ Deserialized flechette.Table from IPC string using flechette.fromIPC().`);
+                if (canDecodeArrowIPC()) {
+                  resolvedData = window.flechette.tableFromIPC(ipcBytes);
+                  console.log(`[mosaic][${wid}] ✓ Deserialized flechette.Table from IPC string using flechette.tableFromIPC().`);
                 } else {
-                  throw new Error(`[mosaic][${wid}] window.flechette.fromIPC is not available.`);
+                  throw new Error(`[mosaic][${wid}] window.flechette.tableFromIPC is not available.`);
                 }
               } else if (Array.isArray(message.data)) {
                 console.warn(`[mosaic][${wid}] ⚠ Received JS array for 'arrow' query (request ${message.request}). Attempting to convert to flechette.Table using tableFromArrays.`);
@@ -280,11 +284,11 @@ HTMLWidgets.widget({
                 if (typeof tableData === 'string') {
                   console.log(`[mosaic][${wid}] Input table '${tableName}' is a string. Attempting to decode as Arrow IPC.`);
                   const ipcBytes = base64ToUint8Array(tableData);
-                  if (window.flechette && typeof window.flechette.fromIPC === 'function') {
-                    finalTableData = window.flechette.fromIPC(ipcBytes);
+                  if (canDecodeArrowIPC()) {
+                    finalTableData = window.flechette.tableFromIPC(ipcBytes);
                     console.log(`[mosaic][${wid}] ✓ Decoded input table '${tableName}' to flechette.Table.`);
                   } else {
-                    throw new Error(`window.flechette.fromIPC not available.`);
+                    throw new Error(`window.flechette.tableFromIPC not available.`);
                   }
                 } else if (Array.isArray(tableData)) {
                   console.log(`[mosaic][${wid}] Input table '${tableName}' is a JS array.`);
