@@ -9,6 +9,8 @@ mosaic(
   specType = c("auto", "json", "yaml", "esm"),
   data = NULL,
   backend = c("r", "wasm"),
+  data_transport = c("auto", "file", "inline"),
+  data_dir = NULL,
   width = NULL,
   height = NULL
 )
@@ -22,6 +24,14 @@ mosaic(
 
 \item{backend}{Database backend: "r" (default) for R DuckDB or "wasm" for browser WASM DuckDB.}
 
+\item{data_transport}{How `backend = "wasm"` input tables are delivered to
+the browser. `"auto"` uses `"file"` when `data_dir` is supplied and
+otherwise falls back to `"inline"` for portable widgets; `"inline"` keeps
+the row-JSON path; `"file"` writes Arrow IPC files to `data_dir` and
+registers them in DuckDB-WASM by URL.}
+
+\item{data_dir}{Directory for `"file"` transport. Serve or save the widget
+from the same directory so relative URLs resolve.}
 \item{width}{CSS or pixel width (e.g. "100\%", "600px", or numeric).}
 
 \item{height}{CSS or pixel height.}

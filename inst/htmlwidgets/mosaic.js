@@ -33,6 +33,18 @@ function convertRowOrientedToColumnOriented(rows) {
   return columns;
 }
 
+async function fetchArrowIPC(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Arrow IPC data from ${url}: ${response.status} ${response.statusText}`);
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+function tableIsArrowUrl(tableData) {
+  return tableData && typeof tableData === 'object' && typeof tableData.__arrow_url === 'string';
+}
+
 function canDecodeArrowIPC() {
   return window.flechette && typeof window.flechette.tableFromIPC === 'function';
 }
@@ -222,7 +234,12 @@ HTMLWidgets.widget({
               try {
                 let tableData = x.input_tables[tableName];
 
-                if (Array.isArray(tableData) && tableData.length > 0) {
+                if (tableIsArrowUrl(tableData)) {
+                  const ipcBytes = await fetchArrowIPC(tableData.__arrow_url);
+                  const conn = await wasmConnector.getConnection();
+                  await conn.insertArrowFromIPCStream(ipcBytes, { name: tableName, create: true, schema: 'main' });
+                  console.log(`[mosaic][${wid}] ✓ Loaded Arrow IPC table '${tableName}' into WASM DuckDB from ${tableData.__arrow_url}`);
+                } else if (Array.isArray(tableData) && tableData.length > 0) {
                   // Determine columns from the first row
                   const columns = Object.keys(tableData[0]);
 

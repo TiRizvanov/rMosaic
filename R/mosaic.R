@@ -12,6 +12,13 @@ NULL
 #' @param specType  One of "auto" (default), "json", "yaml", or "esm".
 #' @param data      Named list of data.frames to register in DuckDB.
 #' @param backend   Database backend: "r" (default) for R DuckDB or "wasm" for browser WASM DuckDB.
+#' @param data_transport How `backend = "wasm"` input tables are delivered to
+#'   the browser. `"auto"` uses `"file"` when `data_dir` is supplied and
+#'   otherwise falls back to `"inline"` for portable widgets; `"inline"` keeps
+#'   the row-JSON path; `"file"` writes Arrow IPC files to `data_dir` and
+#'   registers them in DuckDB-WASM by URL.
+#' @param data_dir  Directory for `"file"` transport. Serve or save the widget
+#'   from the same directory so relative URLs resolve.
 #' @param width     CSS or pixel width (e.g. "100\%", "600px", or numeric).
 #' @param height    CSS or pixel height.
 #' @return An htmlwidget that renders the Mosaic visualization.
@@ -21,10 +28,25 @@ mosaic <- function(
     specType = c("auto", "json", "yaml", "esm"),
     data = NULL,
     backend = c("r", "wasm"),
+    data_transport = c("auto", "file", "inline"),
+    data_dir = NULL,
     width = NULL,
     height = NULL) {
   specType <- match.arg(specType)
   backend <- match.arg(backend)
+  data_transport <- match.arg(data_transport)
+  if (identical(data_transport, "auto")) {
+    data_transport <- if (!is.null(data_dir)) "file" else "inline"
+  }
+  if (identical(data_transport, "file")) {
+    if (!is.character(data_dir) || length(data_dir) != 1L || !nzchar(data_dir)) {
+      stop("'data_dir' is required when data_transport = 'file'.", call. = FALSE)
+    }
+    if (!requireNamespace("arrow", quietly = TRUE)) {
+      stop("Package 'arrow' is required when data_transport = 'file'.", call. = FALSE)
+    }
+    dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+  }
 
   use_wasm <- backend == "wasm"
 
@@ -171,10 +193,15 @@ mosaic <- function(
           if (is.factor(col)) as.character(col) else col
         })
 
-        # Convert to row-oriented format for JSON serialization
-        input_tables[[nm]] <- lapply(seq_len(nrow(df)), function(i) {
-          as.list(df[i, , drop = FALSE])
-        })
+        if (identical(data_transport, "file")) {
+          raw_bytes <- arrow::write_to_raw(arrow::as_arrow_table(df), format = "stream")
+          input_tables[[nm]] <- .mosaic_write_data_file(raw_bytes, data_dir, nm)
+        } else {
+          # Convert to row-oriented format for JSON serialization
+          input_tables[[nm]] <- lapply(seq_len(nrow(df)), function(i) {
+            as.list(df[i, , drop = FALSE])
+          })
+        }
       }
     }
 
@@ -250,4 +277,15 @@ mosaic <- function(
     package = "rMosaic",
     sizingPolicy = htmlwidgets::sizingPolicy(browser.fill = TRUE)
   )
+}
+
+.mosaic_write_data_file <- function(raw_bytes, data_dir, name) {
+  dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+  safe_name <- gsub("[^A-Za-z0-9_-]+", "_", name)
+  path <- file.path(
+    data_dir,
+    sprintf("mosaic_%s_%08x.arrows", safe_name, sample.int(.Machine$integer.max, 1L))
+  )
+  writeBin(raw_bytes, path)
+  list(`__arrow_url` = basename(path), `__arrow_format` = "stream")
 }
