@@ -32,6 +32,7 @@ registers them in DuckDB-WASM by URL.}
 
 \item{data_dir}{Directory for `"file"` transport. Serve or save the widget
 from the same directory so relative URLs resolve.}
+
 \item{width}{CSS or pixel width (e.g. "100\%", "600px", or numeric).}
 
 \item{height}{CSS or pixel height.}
