@@ -9,6 +9,9 @@ NULL
 #' @inheritParams mosaic
 #' @param title Optional page title
 #' @param selection_env Environment to store selections in
+#' @return A Shiny application object. When the user imports a selection, the
+#'   selected rows are assigned into \code{selection_env} as
+#'   \code{mosaic_sel_<n>}.
 #' @export
 runMosaicWithExport <- function(
     spec,
@@ -20,11 +23,12 @@ runMosaicWithExport <- function(
     selection_env = .GlobalEnv) {
   specType <- match.arg(specType)
 
+  app_options <- list()
   if (
     requireNamespace("rstudioapi", quietly = TRUE) &&
       rstudioapi::hasFun("viewer")
   ) {
-    options(shiny.launch.browser = rstudioapi::viewer)
+    app_options$launch.browser <- rstudioapi::viewer
   }
 
   # Clone the data to keep a reference
@@ -269,5 +273,5 @@ runMosaicWithExport <- function(
     })
   }
 
-  shiny::shinyApp(ui, server)
+  shiny::shinyApp(ui, server, options = app_options)
 }

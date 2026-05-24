@@ -2,12 +2,14 @@
 
 ## Test environments
 
-* local macOS 15 (aarch64-apple-darwin20), R 4.5.1 — 0 errors, 0 warnings, 1 NOTE
+* local macOS 15.7.3 (aarch64-apple-darwin20), R 4.5.1 — 0 errors, 0 warnings, 0 notes (`--as-cran --no-manual`, incoming remote checks disabled by `devtools::check()`)
 * (please re-run on win-builder + R-hub before submission)
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 NOTE (new submission)
+0 errors | 0 warnings | 0 notes in the local check.
+
+Expected CRAN incoming NOTE:
 
   > New submission
 
@@ -24,6 +26,6 @@ JS is upstream-MIT and is documented in `LICENSE.md`.
 
 ## URLs
 
-The `URL` and `BugReports` fields in DESCRIPTION point to
-`https://github.com/TiRizvanov/rMosaic`. The repository will be public before
-this submission is sent.
+The package does not currently declare `URL` or `BugReports` fields because the
+public repository and pkgdown site are not yet available. Add them back before
+submission only after `tools::check_package_urls(".")` reports no broken URLs.

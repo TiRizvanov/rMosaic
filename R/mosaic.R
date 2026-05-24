@@ -49,13 +49,14 @@ mosaic <- function(
   }
 
   use_wasm <- backend == "wasm"
+  is_spec_file <- is.character(spec) && length(spec) == 1L && file.exists(spec)
 
   # 1) Determine format
   fmt <- specType
   if (fmt == "auto") {
     if (is.list(spec)) {
       fmt <- "json"
-    } else if (is.character(spec) && length(spec) == 1 && file.exists(spec)) {
+    } else if (is_spec_file) {
       ext <- tolower(tools::file_ext(spec))
       fmt <- if (ext %in% c("js", "mjs")) {
         "esm"
@@ -82,7 +83,7 @@ mosaic <- function(
     if (is.list(spec)) {
       spec_list <- spec
     } else {
-      txt <- if (file.exists(spec)) readLines(spec) else spec
+      txt <- if (is_spec_file) readLines(spec) else spec
       spec_list <- jsonlite::fromJSON(
         paste(txt, collapse = "\n"),
         simplifyVector = FALSE
@@ -92,11 +93,11 @@ mosaic <- function(
     if (is.list(spec)) {
       spec_list <- spec
     } else {
-      txt <- if (file.exists(spec)) readLines(spec) else spec
+      txt <- if (is_spec_file) readLines(spec) else spec
       spec_list <- yaml::read_yaml(text = paste(txt, collapse = "\n"))
     }
   } else if (fmt == "esm") {
-    if (file.exists(spec)) {
+    if (is_spec_file) {
       spec_text <- paste(readLines(spec), collapse = "\n")
     } else if (is.character(spec)) {
       spec_text <- spec

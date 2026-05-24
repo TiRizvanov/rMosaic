@@ -7,6 +7,7 @@
 #'
 #' @inheritParams mosaic
 #' @param title   Optional page title
+#' @return A Shiny application object.
 #' @export
 runMosaicApp <- function(
     spec,
@@ -19,11 +20,12 @@ runMosaicApp <- function(
   specType <- match.arg(specType)
   backend <- match.arg(backend)
 
+  app_options <- list()
   if (
     requireNamespace("rstudioapi", quietly = TRUE) &&
       rstudioapi::hasFun("viewer")
   ) {
-    options(shiny.launch.browser = rstudioapi::viewer)
+    app_options$launch.browser <- rstudioapi::viewer
   }
 
   ui <- shiny::fluidPage(
@@ -51,5 +53,5 @@ runMosaicApp <- function(
       )
     })
   }
-  shiny::shinyApp(ui, server)
+  shiny::shinyApp(ui, server, options = app_options)
 }

@@ -4,6 +4,7 @@
 #' Use this in the UI to create a placeholder for the Mosaic visualization.
 #' @param outputId output variable name
 #' @param width,height CSS dimensions (e.g. '100\%', '400px') for the container.
+#' @return A Shiny UI output element for a Mosaic htmlwidget.
 #' @export
 mosaicOutput <- function(outputId, width = "100%", height = "400px") {
   htmlwidgets::shinyWidgetOutput(
@@ -23,6 +24,7 @@ mosaicOutput <- function(outputId, width = "100%", height = "400px") {
 #' @param env The environment in which to evaluate \code{expr}.
 #' @param quoted Is \code{expr} a quoted expression (with \code{quote()})? This
 #'   is useful if you want to save an expression in a variable.
+#' @return A Shiny render function for use in a server output assignment.
 #' @export
 renderMosaic <- function(expr, env = parent.frame(), quoted = FALSE) {
   if (!quoted) {

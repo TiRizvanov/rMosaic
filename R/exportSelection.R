@@ -8,6 +8,9 @@
 #' @inheritParams mosaic
 #' @param selection_env  where to store extracted selections
 #' @param title Optional page title
+#' @return A Shiny application object. When the user imports a selection, the
+#'   selected rows are assigned into \code{selection_env} as
+#'   \code{mosaic_sel_<n>}.
 #' @export
 runMosaicExport <- function(
     spec,

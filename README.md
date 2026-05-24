@@ -24,9 +24,7 @@ This package includes the [Mosaic JavaScript libraries](https://github.com/uwdat
 # If you are in the package directory:
 install.packages("rMosaic")
 
-# Or install development version from GitHub:
-# install.packages("remotes")
-remotes::install_github("TiRizvanov/rMosaic")
+# Development builds can be installed from the source package when available.
 ```
 
 ---
@@ -154,7 +152,7 @@ We recommend using the [`usethis`](https://cran.r-project.org/package=usethis) a
 3. Write code + tests  
 4. Submit a PR  
 
-Please file any issues on [GitHub Issues](https://github.com/TiRizvanov/rMosaic/issues).
+Please report issues to the package maintainer listed in `DESCRIPTION`.
 
 ---
 

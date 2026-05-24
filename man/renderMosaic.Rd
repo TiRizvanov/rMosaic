@@ -14,6 +14,9 @@ renderMosaic(expr, env = parent.frame(), quoted = FALSE)
 \item{quoted}{Is \code{expr} a quoted expression (with \code{quote()})? This
 is useful if you want to save an expression in a variable.}
 }
+\value{
+A Shiny render function for use in a server output assignment.
+}
 \description{
 Use this in the server to render the Mosaic visualization to the output.
 }

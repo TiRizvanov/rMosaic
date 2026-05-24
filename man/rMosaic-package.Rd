@@ -8,15 +8,6 @@
 \description{
 Provides R bindings for Mosaic, a declarative grammar for linked, data-driven visualizations backed by DuckDB. The package supplies htmlwidgets and Shiny helpers for rendering Mosaic specifications from R, including optional browser-side DuckDB-WASM execution and selection export helpers for exploratory workflows.
 }
-\seealso{
-Useful links:
-\itemize{
-  \item \url{https://github.com/TiRizvanov/rMosaic}
-  \item \url{https://tirizvanov.github.io/rMosaic/}
-  \item Report bugs at \url{https://github.com/TiRizvanov/rMosaic/issues}
-}
-
-}
 \author{
 \strong{Maintainer}: Timur Rizvanov \email{timurr@bu.edu}
 

@@ -29,6 +29,11 @@ runMosaicWithExport(
 
 \item{selection_env}{Environment to store selections in}
 }
+\value{
+A Shiny application object. When the user imports a selection, the
+  selected rows are assigned into \code{selection_env} as
+  \code{mosaic_sel_<n>}.
+}
 \description{
 Launches a Shiny application that allows selecting data points and exporting them to an R environment.
 }

@@ -29,6 +29,9 @@ runMosaicApp(
 
 \item{height}{CSS or pixel height.}
 }
+\value{
+A Shiny application object.
+}
 \description{
 Launches a Shiny application displaying the Mosaic visualization.
 }
