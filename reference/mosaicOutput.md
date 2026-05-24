@@ -17,3 +17,7 @@ mosaicOutput(outputId, width = "100%", height = "400px")
 - width, height:
 
   CSS dimensions (e.g. '100%', '400px') for the container.
+
+## Value
+
+A Shiny UI output element for a Mosaic htmlwidget.

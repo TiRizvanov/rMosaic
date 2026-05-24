@@ -46,3 +46,7 @@ runMosaicApp(
 - height:
 
   CSS or pixel height.
+
+## Value
+
+A Shiny application object.

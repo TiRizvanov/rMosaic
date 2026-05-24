@@ -24,3 +24,7 @@ renderMosaic(expr, env = parent.frame(), quoted = FALSE)
   Is `expr` a quoted expression (with
   [`quote()`](https://rdrr.io/r/base/substitute.html))? This is useful
   if you want to save an expression in a variable.
+
+## Value
+
+A Shiny render function for use in a server output assignment.

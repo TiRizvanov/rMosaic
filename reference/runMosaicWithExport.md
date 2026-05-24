@@ -46,3 +46,8 @@ runMosaicWithExport(
 - selection_env:
 
   Environment to store selections in
+
+## Value
+
+A Shiny application object. When the user imports a selection, the
+selected rows are assigned into `selection_env` as `mosaic_sel_<n>`.

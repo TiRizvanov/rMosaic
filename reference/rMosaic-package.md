@@ -6,16 +6,6 @@ htmlwidgets and Shiny helpers for rendering Mosaic specifications from
 R, including optional browser-side DuckDB-WASM execution and selection
 export helpers for exploratory workflows.
 
-## See also
-
-Useful links:
-
-- <https://github.com/TiRizvanov/rMosaic>
-
-- <https://tirizvanov.github.io/rMosaic/>
-
-- Report bugs at <https://github.com/TiRizvanov/rMosaic/issues>
-
 ## Author
 
 **Maintainer**: Timur Rizvanov <timurr@bu.edu>

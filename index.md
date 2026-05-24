@@ -31,9 +31,7 @@ bundled for use in R and Shiny applications.
 # If you are in the package directory:
 install.packages("rMosaic")
 
-# Or install development version from GitHub:
-# install.packages("remotes")
-remotes::install_github("TiRizvanov/rMosaic")
+# Development builds can be installed from the source package when available.
 ```
 
 ------------------------------------------------------------------------
@@ -172,8 +170,7 @@ smooth workflow.
 3.  Write code + tests  
 4.  Submit a PR
 
-Please file any issues on [GitHub
-Issues](https://github.com/TiRizvanov/rMosaic/issues).
+Please report issues to the package maintainer listed in `DESCRIPTION`.
 
 ------------------------------------------------------------------------
 
