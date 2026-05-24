@@ -33,6 +33,22 @@ function convertRowOrientedToColumnOriented(rows) {
   return columns;
 }
 
+async function fetchArrowIPC(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Arrow IPC data from ${url}: ${response.status} ${response.statusText}`);
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+function tableIsArrowUrl(tableData) {
+  return tableData && typeof tableData === 'object' && typeof tableData.__arrow_url === 'string';
+}
+
+function canDecodeArrowIPC() {
+  return window.flechette && typeof window.flechette.tableFromIPC === 'function';
+}
+
 // Helper function to format values for SQL
 function formatSQLValue(value) {
   if (value === null || value === undefined) {
@@ -85,7 +101,7 @@ HTMLWidgets.widget({
         console.log(`[mosaic][${wid}] Handler already registered.`);
         return;
       }
-      Shiny.addCustomMessageHandler(`${wid}_mosaic_response`, message => {
+      Shiny.addCustomMessageHandler(`${wid}_mosaic_response`, async message => {
         console.log(`[mosaic][${wid}] ← shinyConnector received response:`, message);
         const cbEntry = pending[message.request];
         if (!cbEntry) {
@@ -105,11 +121,11 @@ HTMLWidgets.widget({
               console.log(`[mosaic][${wid}] → processing 'arrow' type response for request ${message.request}. Data type from Shiny: ${typeof message.data}`);
               if (typeof message.data === 'string') {
                 const ipcBytes = base64ToUint8Array(message.data);
-                if (window.flechette && typeof window.flechette.fromIPC === 'function') {
-                  resolvedData = window.flechette.fromIPC(ipcBytes);
-                  console.log(`[mosaic][${wid}] ✓ Deserialized flechette.Table from IPC string using flechette.fromIPC().`);
+                if (canDecodeArrowIPC()) {
+                  resolvedData = window.flechette.tableFromIPC(ipcBytes);
+                  console.log(`[mosaic][${wid}] ✓ Deserialized flechette.Table from IPC string using flechette.tableFromIPC().`);
                 } else {
-                  throw new Error(`[mosaic][${wid}] window.flechette.fromIPC is not available.`);
+                  throw new Error(`[mosaic][${wid}] window.flechette.tableFromIPC is not available.`);
                 }
               } else if (Array.isArray(message.data)) {
                 console.warn(`[mosaic][${wid}] ⚠ Received JS array for 'arrow' query (request ${message.request}). Attempting to convert to flechette.Table using tableFromArrays.`);
@@ -218,7 +234,12 @@ HTMLWidgets.widget({
               try {
                 let tableData = x.input_tables[tableName];
 
-                if (Array.isArray(tableData) && tableData.length > 0) {
+                if (tableIsArrowUrl(tableData)) {
+                  const ipcBytes = await fetchArrowIPC(tableData.__arrow_url);
+                  const conn = await wasmConnector.getConnection();
+                  await conn.insertArrowFromIPCStream(ipcBytes, { name: tableName, create: true, schema: 'main' });
+                  console.log(`[mosaic][${wid}] ✓ Loaded Arrow IPC table '${tableName}' into WASM DuckDB from ${tableData.__arrow_url}`);
+                } else if (Array.isArray(tableData) && tableData.length > 0) {
                   // Determine columns from the first row
                   const columns = Object.keys(tableData[0]);
 
@@ -280,11 +301,11 @@ HTMLWidgets.widget({
                 if (typeof tableData === 'string') {
                   console.log(`[mosaic][${wid}] Input table '${tableName}' is a string. Attempting to decode as Arrow IPC.`);
                   const ipcBytes = base64ToUint8Array(tableData);
-                  if (window.flechette && typeof window.flechette.fromIPC === 'function') {
-                    finalTableData = window.flechette.fromIPC(ipcBytes);
+                  if (canDecodeArrowIPC()) {
+                    finalTableData = window.flechette.tableFromIPC(ipcBytes);
                     console.log(`[mosaic][${wid}] ✓ Decoded input table '${tableName}' to flechette.Table.`);
                   } else {
-                    throw new Error(`window.flechette.fromIPC not available.`);
+                    throw new Error(`window.flechette.tableFromIPC not available.`);
                   }
                 } else if (Array.isArray(tableData)) {
                   console.log(`[mosaic][${wid}] Input table '${tableName}' is a JS array.`);
