@@ -20,6 +20,8 @@ Description: Provides R bindings for Mosaic, a declarative grammar for linked,
     including optional browser-side DuckDB-WASM execution and selection export
     helpers for exploratory workflows.
 License: MIT + file LICENSE
+URL: https://github.com/TiRizvanov/rMosaic
+BugReports: https://github.com/TiRizvanov/rMosaic/issues
 Encoding: UTF-8
 RoxygenNote: 7.3.3
 Depends:
