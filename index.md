@@ -122,9 +122,8 @@ bugs to the package maintainer listed in `DESCRIPTION`.
 
 ## License
 
-MIT — see [LICENSE](https://tirizvanov.github.io/rMosaic/LICENSE) and
-[LICENSE.md](https://tirizvanov.github.io/rMosaic/LICENSE.md) for the
-full text, including the third-party Mosaic license bundled with the
+MIT — see [LICENSE](https://tirizvanov.github.io/rMosaic/LICENSE) for
+the full text, including the third-party Mosaic license bundled with the
 JavaScript assets.
 
 ## Acknowledgements
