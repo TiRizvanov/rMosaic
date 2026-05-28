@@ -112,8 +112,8 @@ the package maintainer listed in `DESCRIPTION`.
 
 ## License
 
-MIT — see [LICENSE](LICENSE) and [LICENSE.md](LICENSE.md) for the full text,
-including the third-party Mosaic license bundled with the JavaScript assets.
+MIT — see [LICENSE](LICENSE) for the full text, including the third-party
+Mosaic license bundled with the JavaScript assets.
 
 ## Acknowledgements
 

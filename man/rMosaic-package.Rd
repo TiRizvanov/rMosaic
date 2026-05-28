@@ -4,9 +4,9 @@
 \name{rMosaic-package}
 \alias{rMosaic}
 \alias{rMosaic-package}
-\title{rMosaic: Mosaic Shiny Integration}
+\title{rMosaic: R Bindings to the 'Mosaic' Visualization Framework}
 \description{
-Provides R bindings for Mosaic, a declarative grammar for linked, data-driven visualizations backed by DuckDB. The package supplies htmlwidgets and Shiny helpers for rendering Mosaic specifications from R, including optional browser-side DuckDB-WASM execution and selection export helpers for exploratory workflows.
+Provides R bindings for 'Mosaic', a declarative grammar for linked, data-driven visualizations backed by 'DuckDB'. The package supplies 'htmlwidgets' and 'shiny' helpers for rendering 'Mosaic' specifications from R, including optional browser-side 'DuckDB-WASM' execution and selection export helpers for exploratory workflows.
 }
 \section{Acknowledgements}{
 

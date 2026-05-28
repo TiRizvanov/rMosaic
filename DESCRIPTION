@@ -1,6 +1,6 @@
 Package: rMosaic
 Type: Package
-Title: Mosaic Shiny Integration
+Title: R Bindings to the 'Mosaic' Visualization Framework
 Version: 0.1.1
 Authors@R: c(
     person("Timur", "Rizvanov", email = "timurr@bu.edu",
@@ -14,11 +14,11 @@ Authors@R: c(
     person(given = "Boston University", role = "fnd",
            comment = "Undergraduate Research Opportunities Program (UROP)")
   )
-Description: Provides R bindings for Mosaic, a declarative grammar for linked,
-    data-driven visualizations backed by DuckDB. The package supplies
-    htmlwidgets and Shiny helpers for rendering Mosaic specifications from R,
-    including optional browser-side DuckDB-WASM execution and selection export
-    helpers for exploratory workflows.
+Description: Provides R bindings for 'Mosaic', a declarative grammar for
+    linked, data-driven visualizations backed by 'DuckDB'. The package supplies
+    'htmlwidgets' and 'shiny' helpers for rendering 'Mosaic' specifications
+    from R, including optional browser-side 'DuckDB-WASM' execution and
+    selection export helpers for exploratory workflows.
 License: MIT + file LICENSE
 URL: https://github.com/TiRizvanov/rMosaic
 BugReports: https://github.com/TiRizvanov/rMosaic/issues
