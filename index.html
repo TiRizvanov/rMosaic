@@ -49,186 +49,134 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="rmosaic">rMosaic<a class="anchor" aria-label="anchor" href="#rmosaic"></a>
 </h1></div>
-<p><strong>rMosaic</strong> embeds the <a href="https://github.com/uwdata/mosaic" class="external-link">Mosaic</a> declarative visualization framework in R and Shiny, letting you define interactive, data-driven plots via JSON, YAML, or inline ESM specs and back them with DuckDB for high-performance querying.</p>
-<hr>
-<div class="section level2">
-<h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
-</h2>
-<ul>
-<li>
-<strong>Declarative specs</strong> in JSON, YAML, or inline ESM/JS<br>
-</li>
-<li>
-<strong>Automatic DuckDB</strong> setup and data loading (in-memory or on-disk)<br>
-</li>
-<li>
-<strong>Scalable</strong>, server-driven queries via Shiny → DuckDB → Mosaic<br>
-</li>
-<li>
-<strong>Linked interactions</strong>: brushing, cross-filtering, pan/zoom, selection<br>
-</li>
-<li>
-<strong>Flexible data sources</strong>: R data.frames, Parquet/CSV files, SQL queries</li>
-<li>
-<strong>Zero JavaScript</strong> required to get started</li>
-</ul>
-<p><strong>Bundled Mosaic Version</strong>: 0.21.1 This package includes the <a href="https://github.com/uwdata/mosaic" class="external-link">Mosaic JavaScript libraries</a> (v0.21.1) bundled for use in R and Shiny applications.</p>
-<hr>
-</div>
+<p>R bindings for the <a href="https://github.com/uwdata/mosaic" class="external-link">Mosaic</a> declarative visualization framework from UW IDL. Define linked, interactive plots from R or Shiny — brushing, cross-filtering, pan/zoom, and selection — backed by DuckDB for high-performance querying. Specs can be written as JSON, YAML, or inline ESM/JavaScript.</p>
+<p>The Mosaic JavaScript libraries (v0.21.1) and a DuckDB-WASM connector are bundled inside the package under <code>inst/htmlwidgets/</code>, so the widget renders without network access.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<p>Once on CRAN:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># If you are in the package directory:</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"rMosaic"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Development builds can be installed from the source package when available.</span></span></code></pre></div>
-<hr>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"rMosaic"</span><span class="op">)</span></span></code></pre></div>
+<p>Development version from GitHub:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"TiRizvanov/rMosaic"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">rMosaic</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Prepare a small data.frame</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>,</span>
-<span>  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>,</span>
-<span>  grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="fl">200</span>, <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  x   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>,</span>
+<span>  y   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>,</span>
+<span>  grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, <span class="fl">200</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># A simple dot-plot spec in JSON</span></span>
-<span><span class="va">spec_json</span> <span class="op">&lt;-</span> <span class="st">'{</span></span>
-<span><span class="st">  "meta": {</span></span>
-<span><span class="st">    "title": "Iris-like Demo"</span></span>
-<span><span class="st">  },</span></span>
-<span><span class="st">  "data": {</span></span>
-<span><span class="st">    "df": {}</span></span>
-<span><span class="st">  },</span></span>
-<span><span class="st">  "plot": [</span></span>
-<span><span class="st">    {</span></span>
-<span><span class="st">      "mark": "dot",</span></span>
-<span><span class="st">      "data": {"from": "df"},</span></span>
-<span><span class="st">      "x": "x",</span></span>
-<span><span class="st">      "y": "y",</span></span>
-<span><span class="st">      "fill": "grp"</span></span>
-<span><span class="st">    }</span></span>
-<span><span class="st">  ],</span></span>
-<span><span class="st">  "width": 600,</span></span>
-<span><span class="st">  "height": 400</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="st">'{</span></span>
+<span><span class="st">  "meta": { "title": "rMosaic demo" },</span></span>
+<span><span class="st">  "data": { "df": {} },</span></span>
+<span><span class="st">  "plot": [{</span></span>
+<span><span class="st">    "mark": "dot",</span></span>
+<span><span class="st">    "data": { "from": "df" },</span></span>
+<span><span class="st">    "x": "x", "y": "y", "fill": "grp"</span></span>
+<span><span class="st">  }],</span></span>
+<span><span class="st">  "width": 600, "height": 400</span></span>
 <span><span class="st">}'</span></span>
 <span></span>
-<span><span class="co"># Run in the viewer</span></span>
 <span><span class="fu"><a href="reference/runMosaicApp.html">runMosaicApp</a></span><span class="op">(</span></span>
-<span>  spec     <span class="op">=</span> <span class="va">spec_json</span>,</span>
+<span>  spec     <span class="op">=</span> <span class="va">spec</span>,</span>
 <span>  specType <span class="op">=</span> <span class="st">"json"</span>,</span>
 <span>  data     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>df <span class="op">=</span> <span class="va">df</span><span class="op">)</span>,</span>
-<span>  title    <span class="op">=</span> <span class="st">"rMosaic Demo"</span></span>
+<span>  title    <span class="op">=</span> <span class="st">"rMosaic demo"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<hr>
+<p><code><a href="reference/mosaic.html">mosaic()</a></code> accepts specs as an R list, a JSON or YAML character string, a file path (<code>.json</code>, <code>.yaml</code>, <code>.js</code>, <code>.mjs</code>), or an inline ESM module via <code>specType = "esm"</code>.</p>
 </div>
 <div class="section level2">
-<h2 id="spec-formats">Spec Formats<a class="anchor" aria-label="anchor" href="#spec-formats"></a>
+<h2 id="shiny-integration">Shiny integration<a class="anchor" aria-label="anchor" href="#shiny-integration"></a>
 </h2>
-<p>You can provide your spec as:</p>
-<ul>
-<li>
-<strong>R list</strong> (JSON/YAML)<br>
-</li>
-<li>
-<strong>Character string</strong> (inline JSON or YAML)<br>
-</li>
-<li>
-<strong>File path</strong> (<code>.json</code>, <code>.yaml</code>, <code>.js</code>/<code>.mjs</code> for ESM)<br>
-</li>
-<li>
-<strong>Inline ESM</strong> (raw JS module text via <code>specType = "esm"</code>)</li>
-</ul>
-<p>See the package vignettes for comprehensive examples: - <strong>Getting Started</strong>: <code><a href="articles/getting-started.html">vignette("getting-started", package = "rMosaic")</a></code> - <strong>Format Options</strong>: JSON, YAML, and ESM formats - <strong>NYC Taxi Crossfilter</strong>: Multi-view dashboard with 1M+ records - <strong>Olympic Athletes</strong>: Interactive dashboard with tables and selections - <strong>Gaia Star Catalog</strong>: Astronomical data with 5M stars - <strong>Dynamic Rendering</strong>: Pan/zoom with on-the-fly binning - <strong>Protein Design Explorer</strong>: Linked filters, marginal histograms, raster plot, and table for protein design metrics</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="shiny-integration">Shiny Integration<a class="anchor" aria-label="anchor" href="#shiny-integration"></a>
-</h2>
-<p>Use in any Shiny app:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ui</span> <span class="op">&lt;-</span> <span class="fu">fluidPage</span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="reference/mosaicOutput.html">mosaicOutput</a></span><span class="op">(</span><span class="st">"vis"</span>, width<span class="op">=</span><span class="st">"100%"</span>, height<span class="op">=</span><span class="st">"600px"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.posit.co/" class="external-link">shiny</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">rMosaic</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">ui</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/fluidPage.html" class="external-link">fluidPage</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="reference/mosaicOutput.html">mosaicOutput</a></span><span class="op">(</span><span class="st">"vis"</span>, width <span class="op">=</span> <span class="st">"100%"</span>, height <span class="op">=</span> <span class="st">"600px"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">server</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">input</span>, <span class="va">output</span>, <span class="va">session</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">output</span><span class="op">$</span><span class="va">vis</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/renderMosaic.html">renderMosaic</a></span><span class="op">(</span><span class="op">{</span></span>
-<span>    <span class="fu"><a href="reference/mosaic.html">mosaic</a></span><span class="op">(</span></span>
-<span>      spec     <span class="op">=</span> <span class="va">spec_json</span>,</span>
-<span>      specType <span class="op">=</span> <span class="st">"json"</span>,</span>
-<span>      data     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>df <span class="op">=</span> <span class="va">df</span><span class="op">)</span>,</span>
-<span>      width    <span class="op">=</span> <span class="st">"100%"</span>,</span>
-<span>      height   <span class="op">=</span> <span class="st">"600px"</span></span>
-<span>    <span class="op">)</span></span>
+<span>    <span class="fu"><a href="reference/mosaic.html">mosaic</a></span><span class="op">(</span>spec <span class="op">=</span> <span class="va">spec</span>, specType <span class="op">=</span> <span class="st">"json"</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>df <span class="op">=</span> <span class="va">df</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="fu">shinyApp</span><span class="op">(</span><span class="va">ui</span>, <span class="va">server</span><span class="op">)</span></span></code></pre></div>
-<hr>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/shinyApp.html" class="external-link">shinyApp</a></span><span class="op">(</span><span class="va">ui</span>, <span class="va">server</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="exporting-selections">Exporting Selections<a class="anchor" aria-label="anchor" href="#exporting-selections"></a>
+<h2 id="exporting-selections-back-to-r">Exporting selections back to R<a class="anchor" aria-label="anchor" href="#exporting-selections-back-to-r"></a>
 </h2>
-<p>If you need to pull back brush selections into R, use the <code><a href="reference/runMosaicExport.html">runMosaicExport()</a></code> helper:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/runMosaicExport.html">runMosaicExport</a></span><span class="op">(</span></span>
-<span>  spec       <span class="op">=</span> <span class="va">spec_json</span>,</span>
-<span>  specType   <span class="op">=</span> <span class="st">"json"</span>,</span>
-<span>  data       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>df <span class="op">=</span> <span class="va">df</span><span class="op">)</span>,</span>
-<span>  title      <span class="op">=</span> <span class="st">"Export Demo"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>Click the <strong>Import Selection</strong> button to grab the current brush as an R data.frame.</p>
-<hr>
+<p><code><a href="reference/runMosaicExport.html">runMosaicExport()</a></code> (and <code><a href="reference/runMosaicWithExport.html">runMosaicWithExport()</a></code>) launch the widget with an <strong>Import Selection</strong> button that pulls the current brush back into R as a <code>data.frame</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/runMosaicExport.html">runMosaicExport</a></span><span class="op">(</span>spec <span class="op">=</span> <span class="va">spec</span>, specType <span class="op">=</span> <span class="st">"json"</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>df <span class="op">=</span> <span class="va">df</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
+<h2 id="learning-more">Learning more<a class="anchor" aria-label="anchor" href="#learning-more"></a>
 </h2>
-<ul>
-<li>
-<strong>Test</strong>: <code>devtools::test()</code><br>
-</li>
-<li>
-<strong>Lint</strong>: <code>lintr::lint_package()</code><br>
-</li>
-<li>
-<strong>Build</strong>: <code>devtools::build()</code><br>
-</li>
-<li>
-<strong>Check</strong>: <code>devtools::check()</code>
-</li>
-</ul>
-<p>We recommend using the <a href="https://cran.r-project.org/package=usethis" class="external-link"><code>usethis</code></a> and <a href="https://cran.r-project.org/package=devtools" class="external-link"><code>devtools</code></a> packages for a smooth workflow.</p>
-<hr>
+<p>The package ships several vignettes that walk through real-world dashboards:</p>
+<table class="table">
+<thead><tr>
+<th>Vignette</th>
+<th>Topic</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>getting-started</code></td>
+<td>Core API and the spec lifecycle</td>
+</tr>
+<tr>
+<td>
+<code>format-json</code>, <code>format-esm</code>
+</td>
+<td>Spec format options</td>
+</tr>
+<tr>
+<td><code>dynamic-rendering</code></td>
+<td>Pan/zoom with on-the-fly binning</td>
+</tr>
+<tr>
+<td><code>taxi-crossfilter</code></td>
+<td>Multi-view dashboard, 1M+ rows</td>
+</tr>
+<tr>
+<td><code>athletes-dashboard</code></td>
+<td>Tables and linked selections</td>
+</tr>
+<tr>
+<td><code>gaia-stars</code></td>
+<td>Astronomy dataset, 5M points</td>
+</tr>
+<tr>
+<td><code>protein-design-explorer</code></td>
+<td>Marginal histograms, raster, and table</td>
+</tr>
+</tbody>
+</table>
+<p>Open any of them with, e.g., <code><a href="articles/getting-started.html">vignette("getting-started", package = "rMosaic")</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
 </h2>
-<ol style="list-style-type: decimal">
-<li>Fork the repo<br>
-</li>
-<li>Create a feature branch<br>
-</li>
-<li>Write code + tests<br>
-</li>
-<li>Submit a PR</li>
-</ol>
-<p>Please report issues to the package maintainer listed in <code>DESCRIPTION</code>.</p>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
-</h2>
-<p>This package was developed in the <a href="https://www.drieslab.com/" class="external-link">Dries Lab</a> at Boston University. Funding support was provided by the Dries Lab and the Boston University Undergraduate Research Opportunities Program (UROP).</p>
-<hr>
+<p>Issues and pull requests are welcome on <a href="https://github.com/TiRizvanov/rMosaic/issues" class="external-link">GitHub</a>. Please report bugs to the package maintainer listed in <code>DESCRIPTION</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
 </h2>
-<p>MIT © Timur Rizvanov See <a href="./LICENSE">LICENSE</a> for details.</p>
+<p>MIT — see <a href="LICENSE">LICENSE</a> and <a href="LICENSE.html">LICENSE.md</a> for the full text, including the third-party Mosaic license bundled with the JavaScript assets.</p>
+</div>
+<div class="section level2">
+<h2 id="acknowledgements">Acknowledgements<a class="anchor" aria-label="anchor" href="#acknowledgements"></a>
+</h2>
+<p>Developed in the <a href="https://www.drieslab.com/" class="external-link">Dries Lab</a> at Boston University. Funding support was provided by the Dries Lab and the Boston University Undergraduate Research Opportunities Program (UROP).</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
