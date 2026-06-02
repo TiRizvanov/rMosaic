@@ -20,7 +20,7 @@ runMosaicWithExport <- function(
     title = NULL,
     width = "100%",
     height = "600px",
-    selection_env = .GlobalEnv) {
+    selection_env = NULL) {
   specType <- match.arg(specType)
 
   app_options <- list()

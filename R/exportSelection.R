@@ -19,7 +19,7 @@ runMosaicExport <- function(
     title = NULL,
     width = "100%",
     height = "600px",
-    selection_env = .GlobalEnv) {
+    selection_env = NULL) {
   runMosaicWithExport(
     spec = spec,
     specType = specType,

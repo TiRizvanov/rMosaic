@@ -7,7 +7,8 @@
 #' @return Name of the variable created
 #' @keywords internal
 #' @noRd
-store_mosaic_selection <- function(df, env = .GlobalEnv) {
+store_mosaic_selection <- function(df, env = NULL) {
+  if (is.null(env)) env <- globalenv()
   if (!exists(".mosaic_sel_counter", envir = env)) {
     assign(".mosaic_sel_counter", 0, envir = env)
   }
@@ -47,20 +48,19 @@ store_mosaic_selection <- function(df, env = .GlobalEnv) {
 
 
 .mosaic_dot_xy_candidates <- function(node) {
-  candidates <- list()
   walk <- function(x) {
-    if (!is.list(x)) return()
+    if (!is.list(x)) return(list())
+    found <- list()
     if (identical(x$mark, "dot")) {
       x_col <- .mosaic_axis_field(x$x)
       y_col <- .mosaic_axis_field(x$y)
       if (!is.null(x_col) && !is.null(y_col)) {
-        candidates[[length(candidates) + 1L]] <<- c(x = x_col, y = y_col)
+        found <- list(c(x = x_col, y = y_col))
       }
     }
-    for (item in x) walk(item)
+    c(found, unlist(lapply(x, walk), recursive = FALSE))
   }
   walk(node)
-  candidates
 }
 
 

@@ -1,3 +1,15 @@
+# rMosaic 0.1.2
+
+## Bug Fixes
+
+* Remove `.GlobalEnv` as a default argument in `runMosaicExport()`,
+  `runMosaicWithExport()`, and the internal `store_mosaic_selection()`.
+  The global environment is now resolved inside the function body via
+  `globalenv()`, satisfying CRAN policy on modifying `.GlobalEnv`.
+* Replace `<<-` in `.mosaic_dot_xy_candidates()` with a purely recursive
+  approach that accumulates results through return values, avoiding any
+  super-assignment operator.
+
 # rMosaic 0.1.1
 
 ## Bug Fixes

@@ -1,3 +1,25 @@
+# Submission notes — rMosaic 0.1.2
+
+## Changes since 0.1.1
+
+Addressing CRAN reviewer feedback (Benjamin Altmann, 28 May 2026):
+
+* `.GlobalEnv` removed as a default argument from `runMosaicExport()`,
+  `runMosaicWithExport()`, and `store_mosaic_selection()`. The global
+  environment is now resolved lazily inside the function body via
+  `globalenv()`, keeping interactive behaviour identical for users while
+  complying with CRAN policy.
+* `<<-` replaced in `.mosaic_dot_xy_candidates()` with a recursive
+  return-value accumulation pattern (no super-assignment).
+
+## Test environments
+
+* local macOS 15.7.3 (aarch64-apple-darwin20), R 4.5.1 — 0 errors,
+  0 warnings, 0 notes (`--as-cran --no-manual`)
+* win-builder R-devel (2026-05-27 r90083 ucrt, x86_64-w64-mingw32) — 0
+  errors, 0 warnings, 1 NOTE (new submission; addressed)
+* R-hub v2 (Linux, macOS, Windows) — all green
+
 # Submission notes — rMosaic 0.1.1
 
 ## Test environments
