@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rMosaic</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,14 @@
       <small>Source: <a href="https://github.com/TiRizvanov/rMosaic/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.2" id="rmosaic-012">rMosaic 0.1.2<a class="anchor" aria-label="anchor" href="#rmosaic-012"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-0-1-2">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-1-2"></a></h3>
+<ul><li>Remove <code>.GlobalEnv</code> as a default argument in <code><a href="../reference/runMosaicExport.html">runMosaicExport()</a></code>, <code><a href="../reference/runMosaicWithExport.html">runMosaicWithExport()</a></code>, and the internal <code>store_mosaic_selection()</code>. The global environment is now resolved inside the function body via <code><a href="https://rdrr.io/r/base/environment.html" class="external-link">globalenv()</a></code>, satisfying CRAN policy on modifying <code>.GlobalEnv</code>.</li>
+<li>Replace <code>&lt;&lt;-</code> in <code>.mosaic_dot_xy_candidates()</code> with a purely recursive approach that accumulates results through return values, avoiding any super-assignment operator.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="rmosaic-011">rMosaic 0.1.1<a class="anchor" aria-label="anchor" href="#rmosaic-011"></a></h2>
 <div class="section level3">

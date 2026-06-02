@@ -20,13 +20,13 @@ Source:
 [`DESCRIPTION`](https://github.com/TiRizvanov/rMosaic/blob/master/DESCRIPTION)
 
 Rizvanov T, Ruiz E, Dries R (2026). *rMosaic: R Bindings to the 'Mosaic'
-Visualization Framework*. R package version 0.1.1,
+Visualization Framework*. R package version 0.1.2,
 <https://github.com/TiRizvanov/rMosaic>.
 
     @Manual{,
       title = {rMosaic: R Bindings to the 'Mosaic' Visualization Framework},
       author = {Timur Rizvanov and Edward C. Ruiz and Ruben Dries},
       year = {2026},
-      note = {R package version 0.1.1},
+      note = {R package version 0.1.2},
       url = {https://github.com/TiRizvanov/rMosaic},
     }
