@@ -32,3 +32,9 @@ reference:
   - runMosaicApp
   - runMosaicWithExport
   - runMosaicExport
+
+- title: Selection Retrieval
+  desc: Retrieve selections exported from interactive apps
+  contents:
+  - get_mosaic_selection
+  - list_mosaic_selections
