@@ -52,9 +52,6 @@ olympics_spec <- list(
     title       = "Olympic Athletes",
     description = "An interactive dashboard of athlete statistics. The menus and searchbox filter the display and are automatically populated by backing data columns."
   ),
-  data = list(
-    athletes = athletes_df
-  ),
   params = list(
     # Filter for Sport/Sex/Name inputs
     category = list(select = "intersect"),

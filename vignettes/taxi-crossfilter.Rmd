@@ -121,7 +121,7 @@ taxi_spec <- list(
 # Run the app
 runMosaicApp(
   spec     = taxi_spec,
-  specType = "json",
+  specType = "yaml",
   data     = NULL,
   title    = "NYC Taxi Rides (Raster + Crossfilter)",
   backend  = "wasm"

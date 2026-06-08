@@ -29,7 +29,7 @@ library(rMosaic)
 
 # Generate mock spatial data
 set.seed(42)
-n  <- 500000
+n  <- 5000
 df <- data.frame(
   x         = runif(n, 0, 100),
   y         = runif(n, 0, 100),
@@ -136,11 +136,13 @@ spec_with_slider$vconcat <- list(
     as = "$pixel"
   )
 )
+spec_with_slider$plot <- NULL   # moved into vconcat above
 
 runMosaicApp(
-  spec = spec_with_slider,
-  data = list(spatial = df),
-  title = "Dynamic Raster with Pixel Size Control"
+  spec    = spec_with_slider,
+  data    = list(spatial = df),
+  title   = "Dynamic Raster with Pixel Size Control",
+  backend = "wasm"
 )
 ```
 
