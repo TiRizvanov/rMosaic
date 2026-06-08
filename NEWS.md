@@ -1,3 +1,13 @@
+# rMosaic 0.1.3
+
+## Bug Fixes
+
+* `store_mosaic_selection()` no longer falls back to `globalenv()`.
+  Selections are now stored in a package-internal environment
+  (`.mosaic_sel_store`), which is never `.GlobalEnv`. Two new exported
+  helpers — `get_mosaic_selection(name)` and `list_mosaic_selections()` —
+  allow users to retrieve stored selections.
+
 # rMosaic 0.1.2
 
 ## Bug Fixes

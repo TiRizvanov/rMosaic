@@ -1,3 +1,21 @@
+# Submission notes — rMosaic 0.1.3
+
+## Changes since 0.1.2
+
+Addressing CRAN reviewer feedback (Konstanze Lauseker, 08 Jun 2026):
+
+* `store_mosaic_selection()` no longer falls back to `globalenv()` when
+  `env = NULL`. Selections are now stored in `.mosaic_sel_store`, a
+  package-internal environment created with `new.env(parent = emptyenv())`.
+  The package never writes to `.GlobalEnv`. Two new exported helpers
+  (`get_mosaic_selection()`, `list_mosaic_selections()`) allow users to
+  retrieve stored selections.
+
+## Test environments
+
+* local macOS 15.7.3 (aarch64-apple-darwin20), R 4.5.1 — 0 errors,
+  0 warnings, 0 notes (`--as-cran --no-manual`)
+
 # Submission notes — rMosaic 0.1.2
 
 ## Changes since 0.1.1

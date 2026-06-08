@@ -1,7 +1,7 @@
 Package: rMosaic
 Type: Package
 Title: R Bindings to the 'Mosaic' Visualization Framework
-Version: 0.1.2
+Version: 0.1.3
 Authors@R: c(
     person("Timur", "Rizvanov", email = "timurr@bu.edu",
            role = c("aut", "cre")),

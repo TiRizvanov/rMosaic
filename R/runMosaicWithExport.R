@@ -209,11 +209,8 @@ runMosaicWithExport <- function(
 
         # Update status
         msg <- paste0(
-          "Selection imported to R as '",
-          selection_name,
-          "' with ",
-          nrow(selected_df),
-          " rows"
+          "Stored ", nrow(selected_df), " rows as '", selection_name,
+          "'. Retrieve with: get_mosaic_selection('", selection_name, "')"
         )
         selection_status(msg)
       } else if (nrow(selected_df) == 0) {
@@ -239,23 +236,17 @@ runMosaicWithExport <- function(
 
           # Check if indices are valid
           if (max(indices) < nrow(df)) {
-            # Get rows by index
-            selected_df <- df[indices + 1, ] # +1 for R's 1-based indexing
+            selected_df <- df[indices + 1, ]
 
             if (nrow(selected_df) < nrow(df)) {
-              # Store the selection
               selection_name <- store_mosaic_selection(
                 selected_df,
                 selection_env
               )
 
-              # Update status
               msg <- paste0(
-                "Selection imported to R as '",
-                selection_name,
-                "' with ",
-                nrow(selected_df),
-                " rows"
+                "Stored ", nrow(selected_df), " rows as '", selection_name,
+                "'. Retrieve with: get_mosaic_selection('", selection_name, "')"
               )
               selection_status(msg)
             } else {

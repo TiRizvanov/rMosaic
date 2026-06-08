@@ -1,18 +1,57 @@
 # R/selection.R
 
+# Package-level environment; selections are stored here by default so that
+# the package never writes to .GlobalEnv.
+.mosaic_sel_store <- new.env(parent = emptyenv())
+
+#' Retrieve a stored Mosaic selection
+#'
+#' @description
+#' After pressing "Import Selection" in a \code{\link{runMosaicWithExport}}
+#' app, the selected data are stored inside the package under the name printed
+#' in the status bar (e.g. \code{"mosaic_sel_1"}). Use this function to
+#' retrieve a selection by that name.
+#'
+#' @param name Character scalar: the variable name returned by the import
+#'   button (e.g. \code{"mosaic_sel_1"}).
+#' @return The stored \code{data.frame}, or \code{NULL} with a warning if the
+#'   name is not found.
+#' @seealso \code{\link{list_mosaic_selections}}
+#' @export
+get_mosaic_selection <- function(name) {
+  if (!exists(name, envir = .mosaic_sel_store, inherits = FALSE)) {
+    warning("No Mosaic selection named '", name, "' found.")
+    return(NULL)
+  }
+  get(name, envir = .mosaic_sel_store, inherits = FALSE)
+}
+
+#' List all stored Mosaic selections
+#'
+#' @description
+#' Returns the names of all selections currently held in the package store.
+#'
+#' @return Character vector of selection names.
+#' @seealso \code{\link{get_mosaic_selection}}
+#' @export
+list_mosaic_selections <- function() {
+  ls(.mosaic_sel_store)
+}
+
 #' Persist a data.frame into an R environment
 #'
 #' @param df data.frame to store
-#' @param env environment to store the selection in
+#' @param env environment to store the selection in; defaults to the
+#'   package-internal store (never \code{.GlobalEnv})
 #' @return Name of the variable created
 #' @keywords internal
 #' @noRd
 store_mosaic_selection <- function(df, env = NULL) {
-  if (is.null(env)) env <- globalenv()
-  if (!exists(".mosaic_sel_counter", envir = env)) {
-    assign(".mosaic_sel_counter", 0, envir = env)
+  if (is.null(env)) env <- .mosaic_sel_store
+  if (!exists(".mosaic_sel_counter", envir = env, inherits = FALSE)) {
+    assign(".mosaic_sel_counter", 0L, envir = env)
   }
-  cnt <- get(".mosaic_sel_counter", envir = env) + 1
+  cnt <- get(".mosaic_sel_counter", envir = env, inherits = FALSE) + 1L
   assign(".mosaic_sel_counter", cnt, envir = env)
   nm <- paste0("mosaic_sel_", cnt)
   assign(nm, df, envir = env)
