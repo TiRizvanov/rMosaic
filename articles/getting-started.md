@@ -11,8 +11,7 @@ basic usage with a working example.
 
 ``` r
 
-# Install from GitHub
-remotes::install_github("YourGitHub/rMosaic")
+install.packages("rMosaic")
 ```
 
 ## Example: Voronoi Diagram with YAML

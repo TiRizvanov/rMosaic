@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rMosaic</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,11 +72,11 @@ interaction even with large datasets</p>
 <h2 id="example-dynamic-density-raster">Example: Dynamic Density Raster<a class="anchor" aria-label="anchor" href="#example-dynamic-density-raster"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/TiRizvanov/rMosaic" class="external-link">rMosaic</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tirizvanov.github.io/rMosaic/">rMosaic</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Generate mock spatial data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span><span class="va">n</span>  <span class="op">&lt;-</span> <span class="fl">500000</span></span>
+<span><span class="va">n</span>  <span class="op">&lt;-</span> <span class="fl">5000</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  x         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>,</span>
 <span>  y         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>,</span>
@@ -208,11 +208,13 @@ control:</p>
 <span>    as <span class="op">=</span> <span class="st">"$pixel"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="va">spec_with_slider</span><span class="op">$</span><span class="va">plot</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>   <span class="co"># moved into vconcat above</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/runMosaicApp.html">runMosaicApp</a></span><span class="op">(</span></span>
-<span>  spec <span class="op">=</span> <span class="va">spec_with_slider</span>,</span>
-<span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>spatial <span class="op">=</span> <span class="va">df</span><span class="op">)</span>,</span>
-<span>  title <span class="op">=</span> <span class="st">"Dynamic Raster with Pixel Size Control"</span></span>
+<span>  spec    <span class="op">=</span> <span class="va">spec_with_slider</span>,</span>
+<span>  data    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>spatial <span class="op">=</span> <span class="va">df</span><span class="op">)</span>,</span>
+<span>  title   <span class="op">=</span> <span class="st">"Dynamic Raster with Pixel Size Control"</span>,</span>
+<span>  backend <span class="op">=</span> <span class="st">"wasm"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>This demonstrates Mosaic’s ability to create responsive,
 zoom-dependent visualizations that adapt to user navigation.</p>

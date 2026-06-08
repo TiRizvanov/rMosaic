@@ -21,3 +21,12 @@ Shiny helper applications
   : Run a Mosaic Shiny App with selection export
 - [`runMosaicExport()`](https://tirizvanov.github.io/rMosaic/reference/runMosaicExport.md)
   : Run a Mosaic app and export brush/query selections back to R
+
+## Selection Retrieval
+
+Retrieve selections exported from interactive apps
+
+- [`get_mosaic_selection()`](https://tirizvanov.github.io/rMosaic/reference/get_mosaic_selection.md)
+  : Retrieve a stored Mosaic selection
+- [`list_mosaic_selections()`](https://tirizvanov.github.io/rMosaic/reference/list_mosaic_selections.md)
+  : List all stored Mosaic selections
