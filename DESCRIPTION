@@ -20,7 +20,7 @@ Description: Provides R bindings for 'Mosaic', a declarative grammar for
     from R, including optional browser-side 'DuckDB-WASM' execution and
     selection export helpers for exploratory workflows.
 License: MIT + file LICENSE
-URL: https://tirizvanov.github.io/rMosaic/, https://github.com/TiRizvanov/rMosaic
+URL: https://github.com/TiRizvanov/rMosaic
 BugReports: https://github.com/TiRizvanov/rMosaic/issues
 Encoding: UTF-8
 Language: en-US
