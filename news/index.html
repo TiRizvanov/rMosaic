@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rMosaic</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.9003</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,7 +33,31 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.3" id="rmosaic-013">rMosaic 0.1.3<a class="anchor" aria-label="anchor" href="#rmosaic-013"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.3.9003" id="rmosaic-0139003">rMosaic 0.1.3.9003<a class="anchor" aria-label="anchor" href="#rmosaic-0139003"></a></h2>
+<ul><li>Drop the registered Parquet buffer from the DuckDB-WASM filesystem once the table is materialised, so the payload is no longer resident twice, and register it under a unique name so two widgets sharing a table name on one page cannot overwrite each other.</li>
+<li>Report the real cause when a page saved with <code>selfcontained = TRUE</code> cannot resolve a file-transport payload.</li>
+<li>Scope an auto-created <code>data_dir</code> to the Shiny session and remove it when the session ends.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.3.9002" id="rmosaic-0139002">rMosaic 0.1.3.9002<a class="anchor" aria-label="anchor" href="#rmosaic-0139002"></a></h2>
+<ul><li>Ship <code>data_transport = "file"</code> payloads as an html dependency attachment of the widget, so the relative Arrow/Parquet URL resolves in the RStudio Viewer, in Shiny and after <code>htmlwidgets::saveWidget(selfcontained = FALSE)</code> into any directory, not only when the page is served from <code>data_dir</code>. <code>data_dir</code> now defaults to a session temporary directory.</li>
+<li>
+<code><a href="../reference/runMosaicApp.html">runMosaicApp()</a></code>, <code><a href="../reference/runMosaicWithExport.html">runMosaicWithExport()</a></code> and <code><a href="../reference/runMosaicExport.html">runMosaicExport()</a></code> accept and forward <code>con</code>, which their inherited documentation already referred to.</li>
+<li>Document that the <code>copy_arrows</code> rung only loads the nanoarrow extension and never installs it, that data.frames overwrite an existing table of the same name on a supplied connection, and that the widget’s query channel executes the page’s SQL on that connection.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.3.9001" id="rmosaic-0139001">rMosaic 0.1.3.9001<a class="anchor" aria-label="anchor" href="#rmosaic-0139001"></a></h2>
+<ul><li>
+<code><a href="../reference/mosaic.html">mosaic()</a></code> gains a <code>con</code> argument. With <code>backend = "r"</code> a supplied DuckDB DBI connection is queried in place instead of copying data into a fresh in-memory DuckDB, so tables that already live in a database file are never materialised in R; <code>data</code> becomes optional and any data.frames it holds are still written to that connection. Supplied connections are never disconnected; only connections <code><a href="../reference/mosaic.html">mosaic()</a></code> opened itself are closed when the Shiny session ends.</li>
+<li>
+<code>data</code> elements may now be single SQL strings evaluated on <code>con</code>. For <code>backend = "r"</code> they become temporary views; for <code>backend = "wasm"</code> they are streamed from DuckDB to the browser payload (Arrow IPC via the community ‘nanoarrow’ extension, else record-batch streaming through ‘arrow’, else Parquet) without <code><a href="https://dbi.r-dbi.org/reference/dbGetQuery.html" class="external-link">DBI::dbGetQuery()</a></code>. The widget records the export method per table under <code>input_exports</code>, and the JavaScript loader accepts Parquet files and inline Arrow IPC or Parquet payloads for DuckDB-WASM. The <code>rMosaic.export_methods</code> option restricts which export methods are tried.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.3.9000" id="rmosaic-0139000">rMosaic 0.1.3.9000<a class="anchor" aria-label="anchor" href="#rmosaic-0139000"></a></h2>
+<ul><li>Reduce row-conversion overhead for plain data frames in inline WASM data and live R-backend query responses. Attributed columns and custom data frames retain the existing conversion path and serialization behavior.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.3" id="rmosaic-013">rMosaic 0.1.3<a class="anchor" aria-label="anchor" href="#rmosaic-013"></a></h2><p class="text-muted">CRAN release: 2026-06-25</p>
 <div class="section level3">
 <h3 id="bug-fixes-0-1-3">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-1-3"></a></h3>
 <ul><li>
@@ -103,7 +127,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

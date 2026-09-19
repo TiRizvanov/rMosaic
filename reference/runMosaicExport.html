@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rMosaic</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3.9003</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,7 +46,8 @@
 <span>  title <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  width <span class="op">=</span> <span class="st">"100%"</span>,</span>
 <span>  height <span class="op">=</span> <span class="st">"600px"</span>,</span>
-<span>  selection_env <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  selection_env <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  con <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -63,7 +64,13 @@
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>Named list of data.frames to register in DuckDB.</p></dd>
+<dd><p>Named list of input tables. Each element is a data.frame
+to register in DuckDB or, when `con` is supplied, a single SQL string
+evaluated on `con`: with `backend = "r"` it is exposed as a temporary
+view named after the element; with `backend = "wasm"` its result is
+streamed from DuckDB into the browser payload without materialising the
+rows in R. Optional for `backend = "r"` when `con` already holds the
+tables the spec refers to.</p></dd>
 
 
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
@@ -80,6 +87,21 @@
 
 <dt id="arg-selection-env">selection_env<a class="anchor" aria-label="anchor" href="#arg-selection-env"></a></dt>
 <dd><p>where to store extracted selections</p></dd>
+
+
+<dt id="arg-con">con<a class="anchor" aria-label="anchor" href="#arg-con"></a></dt>
+<dd><p>Optional `DBI::DBIConnection` to a DuckDB database. With
+`backend = "r"` the widget queries this connection in place instead of
+copying data into a fresh in-memory DuckDB, so tables that already live
+in the database are never loaded into R; data.frames in `data` are still
+written to it with `overwrite = TRUE`, replacing an existing table of the
+same name. In a Shiny session the widget's query channel executes the SQL
+the page sends, including `exec` statements, on this connection, so supply
+a connection whose contents may change. rMosaic never disconnects a
+supplied connection; only the connections it opens itself are closed when
+the Shiny session ends. With
+`backend = "wasm"` the connection is used solely to export the SQL-string
+elements of `data`.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -98,7 +120,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

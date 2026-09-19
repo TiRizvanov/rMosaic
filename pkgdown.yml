@@ -1,5 +1,5 @@
 pandoc: 3.8.3
-pkgdown: 2.2.0
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   athletes-dashboard: athletes-dashboard.html
@@ -10,7 +10,7 @@ articles:
   getting-started: getting-started.html
   protein-design-explorer: protein-design-explorer.html
   taxi-crossfilter: taxi-crossfilter.html
-last_built: 2026-06-09T13:52Z
+last_built: 2026-09-19T19:42Z
 urls:
   reference: https://tirizvanov.github.io/rMosaic/reference
   article: https://tirizvanov.github.io/rMosaic/articles
