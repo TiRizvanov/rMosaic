@@ -1,3 +1,23 @@
+# Submission notes — rMosaic 0.2.0
+
+## Changes since 0.1.3
+
+* `mosaic()` gains `con`: with `backend = "r"` a supplied DuckDB connection is
+  queried in place, so tables in a DuckDB file are never copied through R.
+  Data elements may be SQL strings on that connection; for the WASM backend
+  DuckDB exports them itself (Arrow IPC, record-batch stream or Parquet), and
+  `data_transport = "file"` ships the payload as an html dependency attachment.
+* Supplied connections are never disconnected; less row-conversion overhead for
+  plain data frames. See NEWS.md.
+
+## Test environments
+
+* local macOS 15.7.9 (aarch64-apple-darwin20), R 4.5.1 — 0 errors,
+  0 warnings, 1 NOTE (`R CMD check --as-cran`; the NOTE is local only: the
+  installed HTML Tidy is too old for HTML manual validation)
+
+There are no reverse dependencies on CRAN.
+
 # Submission notes — rMosaic 0.1.3
 
 ## Changes since 0.1.2

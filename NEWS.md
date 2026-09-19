@@ -1,4 +1,4 @@
-# rMosaic 0.1.3.9003
+# rMosaic 0.2.0
 
 * Drop the registered Parquet buffer from the DuckDB-WASM filesystem once the
   table is materialised, so the payload is no longer resident twice, and
@@ -8,8 +8,6 @@
   resolve a file-transport payload.
 * Scope an auto-created `data_dir` to the Shiny session and remove it when the
   session ends.
-
-# rMosaic 0.1.3.9002
 
 * Ship `data_transport = "file"` payloads as an html dependency attachment of
   the widget, so the relative Arrow/Parquet URL resolves in the RStudio Viewer,
@@ -22,8 +20,6 @@
   never installs it, that data.frames overwrite an existing table of the same
   name on a supplied connection, and that the widget's query channel executes
   the page's SQL on that connection.
-
-# rMosaic 0.1.3.9001
 
 * `mosaic()` gains a `con` argument. With `backend = "r"` a supplied DuckDB
   DBI connection is queried in place instead of copying data into a fresh
@@ -40,8 +36,6 @@
   per table under `input_exports`, and the JavaScript loader accepts Parquet
   files and inline Arrow IPC or Parquet payloads for DuckDB-WASM. The
   `rMosaic.export_methods` option restricts which export methods are tried.
-
-# rMosaic 0.1.3.9000
 
 * Reduce row-conversion overhead for plain data frames in inline WASM data
   and live R-backend query responses. Attributed columns and custom data
