@@ -33,16 +33,68 @@ function convertRowOrientedToColumnOriented(rows) {
   return columns;
 }
 
-async function fetchArrowIPC(url) {
+// A data file written for file transport travels with the widget as an html
+// dependency attachment, so the page may serve it from the dependency
+// directory rather than beside the HTML. Prefer the attachment link when the
+// page has one; fall back to the relative name.
+function resolveAttachmentUrl(name) {
+  if (typeof name !== 'string' || name === '') return name;
+  if (/^([a-z]+:)?\/\//i.test(name) || name.startsWith('data:')) return name;
+  try {
+    const links = document.querySelectorAll('link[rel="attachment"]');
+    for (const link of links) {
+      const href = link.getAttribute('href');
+      if (!href) continue;
+      if (href === name || href.endsWith('/' + name)) return href;
+    }
+  } catch (e) {
+    // document may be unavailable outside a browser
+  }
+    // saveWidget(selfcontained = TRUE) inlines attachments as data: URIs, which
+    // cannot be matched by name, so the page would fall back to the bare file
+    // name and 404. Say so rather than letting the layer render empty.
+    try {
+      const inlined = [...document.querySelectorAll('link[rel="attachment"]')]
+        .some(link => (link.getAttribute('href') || '').startsWith('data:'));
+      if (inlined) {
+        console.error('[mosaic] "' + name + '" cannot be resolved because this page ' +
+          'was saved with selfcontained = TRUE, which inlines the data file as a ' +
+          'data: URI. Save with htmlwidgets::saveWidget(selfcontained = FALSE) ' +
+          'for file transport.');
+      }
+    } catch (e) {
+      // document may be unavailable outside a browser
+    }
+  return name;
+}
+
+async function fetchFileBytes(rawUrl) {
+  const url = resolveAttachmentUrl(rawUrl);
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to fetch Arrow IPC data from ${url}: ${response.status} ${response.statusText}`);
+    throw new Error(`Failed to fetch table data from ${url}: ${response.status} ${response.statusText}`);
   }
   return new Uint8Array(await response.arrayBuffer());
 }
 
 function tableIsArrowUrl(tableData) {
   return tableData && typeof tableData === 'object' && typeof tableData.__arrow_url === 'string';
+}
+
+function tableIsParquetUrl(tableData) {
+  return tableData && typeof tableData === 'object' && typeof tableData.__parquet_url === 'string';
+}
+
+function tableIsParquetInline(tableData) {
+  return tableData && typeof tableData === 'object' && typeof tableData.__parquet_b64 === 'string';
+}
+
+function quoteIdentifier(name) {
+  return '"' + String(name).replace(/"/g, '""') + '"';
+}
+
+function quoteLiteral(value) {
+  return "'" + String(value).replace(/'/g, "''") + "'";
 }
 
 function canDecodeArrowIPC() {
@@ -94,6 +146,36 @@ HTMLWidgets.widget({
           });
         }
       };
+    }
+
+    // DuckDB-WASM reads Parquet from its virtual file system, so the bytes are
+    // registered under a file name and copied into a table. registerFileBuffer
+    // transfers the buffer to the worker: bytes must not be reused afterwards.
+    async function loadParquetBytes(tableName, fileName, bytes) {
+      const db = await wasmConnector.getDuckDB();
+      // A unique registered name keeps two widgets that share a table name on
+      // one page from overwriting each other's buffer.
+      const registered = `${fileName}-${Math.random().toString(36).slice(2, 10)}.parquet`;
+      await db.registerFileBuffer(registered, bytes);
+      try {
+        const conn = await wasmConnector.getConnection();
+        await conn.query(
+          `CREATE TABLE ${quoteIdentifier(tableName)} AS SELECT * FROM read_parquet(${quoteLiteral(registered)})`
+        );
+      } finally {
+        // Once the table is materialised the payload is resident twice; drop
+        // the buffer so the worker keeps only the table.
+        try {
+          await db.dropFile(registered);
+        } catch (e) {
+          console.warn(`[mosaic] could not drop parquet buffer ${registered}`, e);
+        }
+      }
+    }
+
+    async function loadArrowBytes(tableName, ipcBytes) {
+      const conn = await wasmConnector.getConnection();
+      await conn.insertArrowFromIPCStream(ipcBytes, { name: tableName, create: true, schema: 'main' });
     }
 
     function registerHandler(wid) {
@@ -235,10 +317,20 @@ HTMLWidgets.widget({
                 let tableData = x.input_tables[tableName];
 
                 if (tableIsArrowUrl(tableData)) {
-                  const ipcBytes = await fetchArrowIPC(tableData.__arrow_url);
-                  const conn = await wasmConnector.getConnection();
-                  await conn.insertArrowFromIPCStream(ipcBytes, { name: tableName, create: true, schema: 'main' });
+                  const ipcBytes = await fetchFileBytes(tableData.__arrow_url);
+                  await loadArrowBytes(tableName, ipcBytes);
                   console.log(`[mosaic][${wid}] ✓ Loaded Arrow IPC table '${tableName}' into WASM DuckDB from ${tableData.__arrow_url}`);
+                } else if (tableIsParquetUrl(tableData)) {
+                  const parquetBytes = await fetchFileBytes(tableData.__parquet_url);
+                  await loadParquetBytes(tableName, tableData.__parquet_url, parquetBytes);
+                  console.log(`[mosaic][${wid}] Loaded Parquet table '${tableName}' into WASM DuckDB from ${tableData.__parquet_url}`);
+                } else if (typeof tableData === 'string') {
+                  // Inline transport of a DuckDB query exported from R as a base64 Arrow IPC stream.
+                  await loadArrowBytes(tableName, base64ToUint8Array(tableData));
+                  console.log(`[mosaic][${wid}] Loaded inline Arrow IPC table '${tableName}' into WASM DuckDB`);
+                } else if (tableIsParquetInline(tableData)) {
+                  await loadParquetBytes(tableName, `${tableName}.parquet`, base64ToUint8Array(tableData.__parquet_b64));
+                  console.log(`[mosaic][${wid}] Loaded inline Parquet table '${tableName}' into WASM DuckDB`);
                 } else if (Array.isArray(tableData) && tableData.length > 0) {
                   // Determine columns from the first row
                   const columns = Object.keys(tableData[0]);

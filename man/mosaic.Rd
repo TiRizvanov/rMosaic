@@ -12,7 +12,8 @@ mosaic(
   data_transport = c("auto", "file", "inline"),
   data_dir = NULL,
   width = NULL,
-  height = NULL
+  height = NULL,
+  con = NULL
 )
 }
 \arguments{
@@ -20,7 +21,13 @@ mosaic(
 
 \item{specType}{One of "auto" (default), "json", "yaml", or "esm".}
 
-\item{data}{Named list of data.frames to register in DuckDB.}
+\item{data}{Named list of input tables. Each element is a data.frame
+to register in DuckDB or, when `con` is supplied, a single SQL string
+evaluated on `con`: with `backend = "r"` it is exposed as a temporary
+view named after the element; with `backend = "wasm"` its result is
+streamed from DuckDB into the browser payload without materialising the
+rows in R. Optional for `backend = "r"` when `con` already holds the
+tables the spec refers to.}
 
 \item{backend}{Database backend: "r" (default) for R DuckDB or "wasm" for browser WASM DuckDB.}
 
@@ -28,14 +35,38 @@ mosaic(
 the browser. `"auto"` uses `"file"` when `data_dir` is supplied and
 otherwise falls back to `"inline"` for portable widgets; `"inline"` keeps
 the row-JSON path; `"file"` writes Arrow IPC files to `data_dir` and
-registers them in DuckDB-WASM by URL.}
+registers them in DuckDB-WASM by URL. SQL-string elements of `data` are
+exported as Arrow IPC streams when DuckDB can write them (the community
+'nanoarrow' extension, else record-batch streaming through the 'arrow'
+package) and otherwise as Parquet files; the widget payload records the
+method used per table under `input_exports`. Set
+`options(rMosaic.export_methods = ...)` to a subset of
+`c("copy_arrows", "record_batch", "copy_parquet")` to restrict the ladder.
+The 'nanoarrow' extension is only loaded, never installed: on a connection
+where it is absent the `copy_arrows` rung is skipped.}
 
-\item{data_dir}{Directory for `"file"` transport. Serve or save the widget
-from the same directory so relative URLs resolve.}
+\item{data_dir}{Directory for `"file"` transport; when omitted a session
+temporary directory is used. The exported files travel with the widget as
+an html dependency attachment, so the RStudio Viewer, Shiny and
+`htmlwidgets::saveWidget(selfcontained = FALSE)` all resolve them
+(`selfcontained = TRUE` is not supported for file transport).}
 
 \item{width}{CSS or pixel width (e.g. "100\%", "600px", or numeric).}
 
 \item{height}{CSS or pixel height.}
+
+\item{con}{Optional `DBI::DBIConnection` to a DuckDB database. With
+`backend = "r"` the widget queries this connection in place instead of
+copying data into a fresh in-memory DuckDB, so tables that already live
+in the database are never loaded into R; data.frames in `data` are still
+written to it with `overwrite = TRUE`, replacing an existing table of the
+same name. In a Shiny session the widget's query channel executes the SQL
+the page sends, including `exec` statements, on this connection, so supply
+a connection whose contents may change. rMosaic never disconnects a
+supplied connection; only the connections it opens itself are closed when
+the Shiny session ends. With
+`backend = "wasm"` the connection is used solely to export the SQL-string
+elements of `data`.}
 }
 \value{
 An htmlwidget that renders the Mosaic visualization.

@@ -20,7 +20,8 @@ runMosaicWithExport <- function(
     title = NULL,
     width = "100%",
     height = "600px",
-    selection_env = NULL) {
+    selection_env = NULL,
+    con = NULL) {
   specType <- match.arg(specType)
 
   app_options <- list()
@@ -136,7 +137,8 @@ runMosaicWithExport <- function(
         specType = specType,
         data = data,
         width = width,
-        height = height
+        height = height,
+        con = con
       )
     })
 

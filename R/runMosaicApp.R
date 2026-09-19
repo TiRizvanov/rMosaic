@@ -16,7 +16,8 @@ runMosaicApp <- function(
     backend = c("r", "wasm"),
     title = NULL,
     width = "100%",
-    height = "600px") {
+    height = "600px",
+    con = NULL) {
   specType <- match.arg(specType)
   backend <- match.arg(backend)
 
@@ -49,7 +50,8 @@ runMosaicApp <- function(
         data = data,
         backend = backend,
         width = width,
-        height = height
+        height = height,
+        con = con
       )
     })
   }
